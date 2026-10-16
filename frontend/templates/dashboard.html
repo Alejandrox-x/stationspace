@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block t %}Panel{% endblock %}{% block c %}
+<div class="badge"><span class="dot"></span> <span id="st2">Conectando…</span></div>
+<h1>Hola, <span>{{ nombre }}</span></h1>
+<div class="grid">
+<div class="card"><div class="v" id="t">--</div><div class="l">🌡 Temperatura</div></div>
+<div class="card"><div class="v" id="h">--</div><div class="l">💧 Humedad</div></div>
+<div class="card"><div class="v" id="s">--</div><div class="l">🟤 Terreno <small id="sa"></small></div></div>
+<div class="card"><div class="v" id="n">--</div><div class="l">🌧 Lluvia <small id="na"></small></div></div>
+</div>
+<p class="mut" id="st">Cargando...</p>
+<div class="panel">
+<h2>📈 Últimas 24 h</h2>
+<canvas id="ch" class="chart" width="640" height="220"></canvas>
+<div class="legend"><span><i style="background:#fafaf9"></i>Temp (°C)</span><span><i style="background:#67e8f9"></i>Hum (%)</span><span id="np"></span></div>
+</div>
+<button class="fab" id="fab">🤖</button>
+<aside class="pnl" id="pnl">
+<header><span>🤖 Asistente</span><button id="px">X</button></header>
+<div id="log" class="log"><div class="msg ai">Hola. Pregúntame: ¿hay alerta? ¿hay fuga?</div></div>
+<div class="inrow"><input id="qi" placeholder="Escribe..."><button id="qb">Enviar</button></div>
+</aside>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

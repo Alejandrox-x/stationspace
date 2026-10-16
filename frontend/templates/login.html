@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block t %}Entrar{% endblock %}{% block c %}
+<h1>Entrar</h1>
+{% if err %}<p class="err">{{ err }}</p>{% endif %}
+<form method="post">
+<input name="email" type="email" placeholder="Correo" required>
+<input name="password" type="password" placeholder="Clave" required>
+<button>Entrar</button>
+</form>
+<p class="mut">¿Sin cuenta? <a href="/registro">Créala aquí</a></p>
+{% endblock %}

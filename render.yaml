@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: stationspace
+    runtime: python
+    plan: free
+    rootDir: .
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: gunicorn --chdir backend app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 90
+    healthCheckPath: /salud
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: API_TOKEN
+        generateValue: true
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: AI_MODEL
+        value: openai/gpt-oss-20b
+      - key: DATABASE_URL
+        fromDatabase:
+          name: stationspace-db
+          property: connectionString
+
+databases:
+  - name: stationspace-db
+    plan: free

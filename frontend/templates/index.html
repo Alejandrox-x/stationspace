@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block t %}Inicio{% endblock %}{% block c %}
+<div class="hero">
+<div class="badge"><span class="dot"></span> Estación en línea</div>
+<h1>Bienvenido a <span>StationSpace</span></h1>
+<p class="mut">Monitoreo ambiental de tu casa desde el espacio de tu WiFi: temperatura, humedad, terreno y lluvia en vivo, con asistente IA.</p>
+{% if user %}
+<p><a class="btn" href="/dashboard">🛰 Ir al panel</a></p>
+{% else %}
+<p><a class="btn" href="/registro">Crear cuenta</a> <a class="btn ghost" href="/login">Entrar</a></p>
+{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS usuarios (
+  id SERIAL PRIMARY KEY,
+  nombre TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  hash TEXT NOT NULL,
+  creado TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS lecturas (
+  id SERIAL PRIMARY KEY,
+  ts TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  temperatura DOUBLE PRECISION,
+  humedad DOUBLE PRECISION,
+  suelo_raw INTEGER,
+  lluvia_raw INTEGER,
+  suelo_pct INTEGER,
+  lluvia_pct INTEGER,
+  estado TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_lecturas_ts ON lecturas(ts);

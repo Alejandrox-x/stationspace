@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StationSpace · {% block t %}{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<canvas id="stars"></canvas>
+<nav><b>🛰 StationSpace</b>
+{% if session.get('uid') %}
+<a href="/dashboard">Panel</a><a href="/logout">Salir ({{ session.get('nombre') }})</a>
+{% else %}
+<a href="/login">Entrar</a><a href="/registro">Crear cuenta</a>
+{% endif %}
+</nav>
+<main>{% block c %}{% endblock %}</main>
+<script>
+(function(){var c=document.getElementById('stars'),x=c.getContext('2d'),S=[],N=90;
+function R(){c.width=innerWidth;c.height=innerHeight}
+addEventListener('resize',R);R();
+for(var i=0;i<N;i++)S.push({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.4+.3,v:Math.random()*.25+.05,o:Math.random()*.7+.2,p:Math.random()*6.28});
+(function A(t){x.clearRect(0,0,c.width,c.height);
+for(var i=0;i<N;i++){var s=S[i];s.y-=s.v;if(s.y<0){s.y=c.height;s.x=Math.random()*c.width}
+var tw=.5+.5*Math.sin(t/700+s.p);x.globalAlpha=s.o*tw;x.fillStyle='#fff';x.beginPath();x.arc(s.x,s.y,s.r,0,6.28);x.fill()}
+x.globalAlpha=1;requestAnimationFrame(A)})(0);
+document.addEventListener('mousemove',function(e){
+var rx=(e.clientY/innerHeight-.5)*-5,ry=(e.clientX/innerWidth-.5)*5,q=document.querySelectorAll('.card');
+for(var i=0;i<q.length;i++)q[i].style.transform='perspective(700px) rotateX('+rx+'deg) rotateY('+ry+'deg)'});
+})();
+</script>
+</body>
+</html>
