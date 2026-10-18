@@ -156,14 +156,20 @@ try {
 # Resumen final
 # ------------------------------------------------------------
 Write-Host ""
-Write-Host ">>> PARA LOS INVITADOS (PC o celular en ESTA misma WiFi):" -ForegroundColor Magenta
-Write-Host ("    Web y panel  : http://" + $ipLocal + ":5000   (usuario: expo@stationspace.local  clave: expo2026)") -ForegroundColor Magenta
-if ($ipEsp) { Write-Host ("    Estacion     : http://" + $ipEsp + "   (sensores en vivo del ESP32)") -ForegroundColor Magenta }
+Write-Host ">>> PARA LOS INVITADOS (celular o PC, escaneen los QR en pantalla):" -ForegroundColor Magenta
+Write-Host "    Web y panel  : https://stationspace.onrender.com   (NUBE, funciona desde cualquier red)" -ForegroundColor Magenta
+Write-Host "                   usuario: expo@stationspace.local   clave: expo2026" -ForegroundColor Magenta
+if ($ipEsp) { Write-Host ("    Estacion     : http://" + $ipEsp + "   (sensores en vivo del ESP32, sin login)") -ForegroundColor Magenta }
 $qr = Join-Path $env:TEMP "qr_expo.png"
 try {
-    Invoke-WebRequest -Uri ("https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=http%3A%2F%2F" + $ipLocal + "%3A5000") -OutFile $qr -TimeoutSec 25 -UseBasicParsing
-    if ((Get-Item $qr).Length -gt 1000) { Start-Process $qr; Write-Host "    (se abrio un CODIGO QR para los invitados)" -ForegroundColor DarkMagenta }
-} catch {}
+    Invoke-WebRequest -Uri ("https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=https%3A%2F%2Fstationspace.onrender.com") -OutFile $qr -TimeoutSec 25 -UseBasicParsing
+    if ((Get-Item $qr).Length -gt 300) { Start-Process $qr; Write-Host "    (QR del PANEL automatico para invitados)" -ForegroundColor DarkMagenta }
+    if ($ipEsp) {
+        $qr2 = Join-Path $env:TEMP "qr_esp32.png"
+        Invoke-WebRequest -Uri ("https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=http%3A%2F%2F" + $ipEsp) -OutFile $qr2 -TimeoutSec 25 -UseBasicParsing
+        if ((Get-Item $qr2).Length -gt 300) { Start-Sleep 1; Start-Process $qr2 }
+    }
+} catch { Write-Host "    (sin QR automatico: muestra la URL escrita de arriba)" -ForegroundColor DarkGray }
 Start-Sleep 2
 Write-Host "====================================================" -ForegroundColor Cyan
 Write-Host "  DESPLIEGUE COMPLETO - RESUMEN PARA LA EXPO" -ForegroundColor Cyan
