@@ -8,7 +8,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',Roboto,-apple-s
 ::selection{background:rgba(103,232,249,.35)}
 
 /* ===== Fondo: aurora + grid ===== */
-.aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;filter:blur(70px);opacity:.55}
+.aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;opacity:.5}
 .aurora i{position:absolute;border-radius:50%;mix-blend-mode:screen;animation:drift 22s ease-in-out infinite alternate}
 .aurora i:nth-child(1){width:46vw;height:46vw;left:-12vw;top:-16vw;background:radial-gradient(circle,#312e81,transparent 65%)}
 .aurora i:nth-child(2){width:52vw;height:52vw;right:-18vw;top:-22vw;background:radial-gradient(circle,#0891b2,transparent 65%);animation-delay:-7s}
@@ -16,7 +16,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',Roboto,-apple-s
 @keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(9vw,7vh) scale(1.25)}}
 .grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.35;
 background-image:linear-gradient(rgba(103,232,249,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(103,232,249,.055) 1px,transparent 1px);
-background-size:44px 44px;mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 40%,transparent 100%)}
+background-size:44px 44px;-webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 40%,transparent 100%);mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 40%,transparent 100%)}
 #stars{position:fixed;inset:0;z-index:1;pointer-events:none}
 
 /* ===== NAV ===== */
