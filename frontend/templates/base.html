@@ -52,13 +52,15 @@ function spawnComet(){
 addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY});
 function A(t){
   requestAnimationFrame(A);
+  if(t-prev<26)return;var dif=Math.min(60,t-prev);prev=t; // limita a ~33fps en PCs humildes
   x.clearRect(0,0,c.width,c.height);
   var cxo=(mx-c.width/2)/c.width,cyo=(my-c.height/2)/c.height;
   // cometa
-  prox-=16.7;
+  prox-=dif;
   if(prox<0&&!comet){spawnComet()}
   if(comet){
-    comet.life--;comet.x+=comet.vx;comet.y+=comet.vy;
+    var st=dif/16.7;
+    comet.life-=st;comet.x+=comet.vx*st;comet.y+=comet.vy*st;
     var cgrad=x.createLinearGradient(comet.x,comet.y,comet.x-comet.vx*13,comet.y-comet.vy*13);
     cgrad.addColorStop(0,'rgba(190,240,255,.95)');cgrad.addColorStop(.35,'rgba(122,222,255,.4)');cgrad.addColorStop(1,'rgba(122,222,255,0)');
     x.strokeStyle=cgrad;x.lineWidth=1.8;x.beginPath();x.moveTo(comet.x,comet.y);x.lineTo(comet.x-comet.vx*13,comet.y-comet.vy*13);x.stroke();
@@ -71,10 +73,10 @@ function A(t){
     if(s.z>.5){
       for(var j=i+1;j<S.length;j++){var o=S[j];if(o.z<=.5)continue;
         var qx=o.x+cxo*26*o.z,qy=o.y+cyo*26*o.z,ax=px-qx,ay=py-qy,d2=ax*ax+ay*ay;
-        if(d2<9600){var a=(1-Math.sqrt(d2)/98)*.16*Math.min(s.z,o.z);
-          x.strokeStyle='rgba(122,222,255,'+a.toFixed(3)+')';x.beginPath();x.moveTo(px,py);x.lineTo(qx,qy);x.stroke()}}
+        if(d2<9600){var b=ALF[((1-Math.sqrt(d2)/98)*Math.min(s.z,o.z)*16)|0];
+          x.strokeStyle=b;x.beginPath();x.moveTo(px,py);x.lineTo(qx,qy);x.stroke()}}
       var dm2=(px-mx)*(px-mx)+(py-my)*(py-my);
-      if(dm2<16900){x.strokeStyle='rgba(196,181,253,'+((1-Math.sqrt(dm2)/130)*.2).toFixed(3)+')';x.beginPath();x.moveTo(px,py);x.lineTo(mx,my);x.stroke()}
+      if(dm2<16900){x.strokeStyle=ALFV[((1-Math.sqrt(dm2)/130)*.2*16|0)]||ALFV[3];x.beginPath();x.moveTo(px,py);x.lineTo(mx,my);x.stroke()}
     }
     var tw=.62+.38*Math.sin(t/1000*s.tw+s.ph);
     x.globalAlpha=(.35+.5*s.z)*tw;
@@ -83,13 +85,20 @@ function A(t){
     x.globalAlpha=1;
   }
 }
+var prev=0,ALF=[],ALFV=[];
+for(var q1=0;q1<17;q1++)ALF[q1]='rgba(122,222,255,'+(q1/16*.16).toFixed(3)+')';
+for(var q2=0;q2<4;q2++)ALFV[q2]='rgba(196,181,253,'+(q2/3*.2).toFixed(3)+')';
 requestAnimationFrame(A);
 })();
 (function(){
-var q=document.querySelectorAll('.card');
+var q=document.querySelectorAll('.card'),tb=false;
 document.addEventListener('mousemove',function(e){
-  var rx=(e.clientY/innerHeight-.5)*-4,ry=(e.clientX/innerWidth-.5)*4;
-  for(var i=0;q[i];i++)q[i].style.transform='perspective(900px) rotateX('+rx+'deg) rotateY('+ry+'deg)'});
+  if(tb)return;tb=true;
+  requestAnimationFrame(function(){
+    tb=false;
+    var rx=(e.clientY/innerHeight-.5)*-4,ry=(e.clientX/innerWidth-.5)*4;
+    for(var i=0;q[i];i++)q[i].style.transform='perspective(900px) rotateX('+rx+'deg) rotateY('+ry+'deg)'});
+});
 })();
 </script>
 </body>
