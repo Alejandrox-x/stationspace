@@ -17,7 +17,7 @@
   </a>
   <span class="navsep"></span>
   {% if session.get('uid') %}
-  <a href="/dashboard" class="navbtn">Panel</a><a href="/logout" class="navbtn">Salir · {{ session.get('nombre') }}</a>
+  <a href="/dashboard" class="navbtn">Panel</a><a href="/estadisticas" class="navbtn">Estadísticas</a><a href="/logout" class="navbtn">Salir · {{ session.get('nombre') }}</a>
   {% else %}
   <a href="/login" class="navbtn">Entrar</a><a href="/registro" class="navbtn solid">Crear cuenta</a>
   {% endif %}

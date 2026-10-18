@@ -130,6 +130,25 @@ canvas.chart{width:100%;background:rgba(0,0,0,.45);border:1px solid var(--bd);bo
 /* ===== misc ===== */
 .rowc{display:flex;align-items:center;justify-content:space-between;gap:10px}
 @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.kp{display:flex;justify-content:space-between;font-size:12px;color:var(--mt);margin-top:6px}
+.kp b{color:var(--tx);font-variant-numeric:tabular-nums}
+.range{position:relative;height:4px;background:rgba(255,255,255,.08);border-radius:3px;margin-top:8px}
+.range i{position:absolute;top:50%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;background:linear-gradient(135deg,var(--cy),var(--vi));box-shadow:0 0 12px rgba(103,232,249,.55);transition:left .6s cubic-bezier(.2,.8,.2,1)}
+.seg{display:flex;height:14px;border-radius:9px;overflow:hidden;margin-top:12px;background:rgba(255,255,255,.07)}
+.seg i{display:block;height:100%;transition:width .6s ease}
+.seg .sn{background:#4ade80}.seg .sw{background:#fbbf24}.seg .sa{background:#fb7185}
+.tabla{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:12px}
+.tabla th,.tabla td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left}
+.tabla th{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mt)}
+.num{font-variant-numeric:tabular-nums}
+.pill{font-size:10px;font-family:var(--mono);padding:4px 9px;border-radius:99px;border:1px solid var(--bd)}
+.pill.n{color:#86efac;border-color:rgba(74,222,128,.4)}
+.pill.w{color:#fcd34d;border-color:rgba(251,191,36,.4)}
+.pill.a{color:#fda4af;border-color:rgba(251,113,133,.4)}
+.periods{display:flex;gap:8px;flex-wrap:wrap}
+.periods button{background:rgba(255,255,255,.05);border:1px solid var(--bd);color:#d4d4d8;font-weight:700;padding:8px 14px;border-radius:99px;font-size:12px}
+.periods button.on{background:linear-gradient(135deg,var(--cy),var(--vi));color:#07131f}
 @media(max-width:560px){
 nav{top:8px}
 .grid{grid-template-columns:1fr 1fr}

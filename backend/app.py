@@ -194,6 +194,12 @@ def dashboard():
     return render_template("dashboard.html", nombre=session.get("nombre"))
 
 
+@app.get("/estadisticas")
+@login_required
+def estadisticas():
+    return render_template("estadisticas.html", nombre=session.get("nombre"))
+
+
 @app.get("/api/ultima")
 @login_required
 def api_ultima():
@@ -205,7 +211,7 @@ def api_ultima():
 @login_required
 def api_historial():
     try:
-        horas = max(1, min(168, int(request.args.get("horas", 24))))
+        horas = max(1, min(720, int(request.args.get("horas", 24))))
     except ValueError:
         horas = 24
     corte = (datetime.utcnow() - timedelta(hours=horas)).strftime("%Y-%m-%d %H:%M:%S")

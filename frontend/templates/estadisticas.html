@@ -1,0 +1,54 @@
+{% extends "base.html" %}{% block t %}Estadísticas{% endblock %}{% block c %}
+<div class="rowc">
+<div class="periods">
+<button data-h="24">24 h</button><button data-h="168" class="on">7 días</button><button data-h="720">30 días</button>
+</div>
+<h2>ESTADÍSTICAS</h2>
+</div>
+<h1>Análisis de <span id="rango">7 días</span></h1>
+<p class="mut" id="msej">Cargando historial…</p>
+
+<div class="statgrid">
+<div class="card"><span class="ico">🌡</span><div class="v" id="tp">--</div><div class="l">Temperatura prom</div>
+<div class="kp"><span>min</span><b id="tmin">--</b></div><div class="kp"><span>máx</span><b id="tmax">--</b></div>
+<div class="range"><i id="trg"></i></div>
+<div class="range"><i id="tkg"></i></div></div>
+
+<div class="card"><span class="ico">💧</span><div class="v" id="hp">--</div><div class="l">Humedad prom</div>
+<div class="kp"><span>min</span><b id="hmin">--</b></div><div class="kp"><span>máx</span><b id="hmax">--</b></div>
+<div class="range"><i id="hrg"></i></div>
+<div class="range"><i id="hkg"></i></div></div>
+
+<div class="card"><span class="ico">🪴</span><div class="v" id="sp">--</div><div class="l">Terreno</div>
+<div class="kp"><span>seco</span><b id="spsec">--%</b></div><div class="kp"><span>encharcado</span><b id="spench">--%</b></div>
+<div class="bar"><i id="sbr"></i></div></div>
+
+<div class="card"><span class="ico">🌧</span><div class="v" id="lp">--</div><div class="l">Con lluvia</div>
+<div class="kp"><span>detecciones</span><b id="ld">0</b></div><div class="kp"><span>sin lluvia</span><b id="ls">0%</b></div>
+<div class="bar"><i id="lbr"></i></div></div>
+</div>
+
+<div class="panel">
+<div class="rowc"><h2>Promedios por día</h2><span class="mut" id="nd" style="font-size:11px"></span></div>
+<canvas id="ch" class="chart" width="640" height="220"></canvas>
+<div class="legend"><span><i style="background:#c4b5fd"></i>Temp prom (°C)</span><span><i style="background:#67e8f9"></i>Hum prom (%)</span></div>
+</div>
+
+<div class="panel">
+<h2>Estado del ambiente</h2>
+<div class="seg"><i class="sn" id="sgn"></i><i class="sw" id="sgw"></i><i class="sa" id="sga"></i></div>
+<div class="legend"><span><i style="background:#4ade80"></i><span id="lnn">0%</span> normal</span><span><i style="background:#fbbf24"></i><span id="lnw">0%</span> advertencia</span><span><i style="background:#fb7185"></i><span id="lna">0%</span> alerta</span></div>
+</div>
+
+<div class="panel">
+<h2>Últimos eventos (no normales)</h2>
+<table class="tabla">
+<thead><tr><th>Cuándo</th><th>Estado</th><th>T °C</th><th>H %</th><th>Suelo ADC</th><th>Lluvia ADC</th></tr></thead>
+<tbody id="ev"><tr><td colspan="6" style="color:var(--mt)">Sin eventos registrados.</td></tr></tbody>
+</table>
+</div>
+
+<p><a class="btn ghost" href="/dashboard">← Volver al panel</a></p>
+
+<script src="{{ url_for('static', filename='stats.js') }}"></script>
+{% endblock %}
