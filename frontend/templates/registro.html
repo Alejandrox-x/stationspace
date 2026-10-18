@@ -1,10 +1,15 @@
 {% extends "base.html" %}{% block t %}Crear cuenta{% endblock %}{% block c %}
+<div class="auth">
+<svg width="46" height="46" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3.4" fill="#67e8f9"/><ellipse cx="12" cy="12" rx="10.5" ry="4.4" stroke="#c4b5fd" stroke-width="1.3" transform="rotate(-22 12 12)"/></svg>
 <h1>Crear cuenta</h1>
+<p class="mut">Únete y conecta tu casa con sus datos.</p>
 {% if err %}<p class="err">{{ err }}</p>{% endif %}
 <form method="post">
 <input name="nombre" placeholder="Nombre" required>
 <input name="email" type="email" placeholder="Correo" required>
 <input name="password" type="password" placeholder="Clave (min 4)" required>
-<button>Crear</button>
+<button>Crear cuenta →</button>
 </form>
+<p class="mut">¿Ya tienes cuenta? <a href="/login">Entra</a></p>
+</div>
 {% endblock %}

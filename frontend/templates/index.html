@@ -1,10 +1,13 @@
 {% extends "base.html" %}{% block t %}Inicio{% endblock %}{% block c %}
 <div class="hero">
+<div class="orbit"><span class="core"></span>
+<svg viewBox="0 0 120 120"><ellipse cx="60" cy="60" rx="52" ry="20" stroke="rgba(103,232,249,.35)" fill="none" stroke-width="1" transform="rotate(-24 60 60)"/><circle cx="15" cy="42" r="4.5" fill="#c4b5fd"/><circle cx="103" cy="80" r="3" fill="#67e8f9"/></svg></div>
 <div class="badge"><span class="dot"></span> Estación en línea</div>
-<h1>Bienvenido a <span>StationSpace</span></h1>
-<p class="mut">Monitoreo ambiental de tu casa desde el espacio de tu WiFi: temperatura, humedad, terreno y lluvia en vivo, con asistente IA.</p>
+<h1 style="margin-top:18px">Tu casa, <span>conectada a su aire</span></h1>
+<p class="mut">StationSpace vigila tu hogar 24/7: temperatura, humedad, fugas y lluvia medidos en tiempo real por sensores IoT, con historial, alertas y un asistente IA propio.</p>
+<div class="chips"><span>🌡_clima</span><span>🟤_fugas</span><span>🌧_lluvia</span><span>🤖_asistente_IA</span></div>
 {% if user %}
-<p><a class="btn" href="/dashboard">🛰 Ir al panel</a></p>
+<p><a class="btn" href="/dashboard">🛰 Abrir panel</a></p>
 {% else %}
 <p><a class="btn" href="/registro">Crear cuenta</a> <a class="btn ghost" href="/login">Entrar</a></p>
 {% endif %}

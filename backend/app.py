@@ -232,7 +232,7 @@ def preguntar_ia(pregunta, ctx):
     body = json.dumps({
         "model": AI_MODEL,
         "messages": [
-            {"role": "system", "content": "Eres el asistente de StationSpace, plataforma que monitorea UNA CASA (sin plantas ni riego: jamas hables de regar). Sensores: DHT11 clima, YL-69 humedad del terreno (detector de filtraciones y fugas), placa roja detector de lluvia en el techo. Solo monitoreas, no tienes actuadores. Espanol amable, maximo 3 lineas. " + ctx},
+            {"role": "system", "content": "Eres el Asistente StationSpace: la IA con la que conversa una familia desde su casa equipada con una estacion ambiental IoT. Eres amable, cercano y natural, como ChatGPT, pero miras la casa: puedes responder de casi todo (saludos, dudas, tareas, curiosidad general) y, cuando encaje, usas tu vista de los sensores: DHT11 clima, YL-69 humedad del terreno (detecta filtraciones y fugas), placa roja lluvia en el techo. No tienes actuadores (no riegas ni apagas cosas). Si preguntan de la casa usa los datos; si es otro tema, responde con confianza e invita a volver a lo de la casa. Espanol con emojis en proporcion, maximo 5 lineas. " + ctx},
             {"role": "user", "content": pregunta[:300]},
         ],
         "temperature": 0.4, "max_tokens": 512}).encode()
@@ -260,9 +260,9 @@ def api_chat():
         return jsonify({"respuesta": "Escribe una pregunta."})
     r = q_one("SELECT * FROM lecturas ORDER BY id DESC LIMIT 1")
     if r:
-        ctx = (f"Sensores en vivo: T={r['temperatura']}C, H={r['humedad']}%, "
+        ctx = (f"Datos actuales de los sensores: T={r['temperatura']}C, H={r['humedad']}%, "
                f"suelo_raw={r['suelo_raw']}, lluvia_raw={r['lluvia_raw']}, estado={r['estado']}. "
-               "Umbrales ADC: suelo encharcado adv<=400 alerta<=250 (posible fuga), lluvia adv>=150 alerta>=400.")
+               "Usa estos datos solo si son utiles para la respuesta.")
     else:
         ctx = "Aun no hay lecturas de la estacion."
     return jsonify({"respuesta": preguntar_ia(pregunta, ctx)})
