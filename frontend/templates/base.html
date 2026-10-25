@@ -160,6 +160,26 @@
       life:40+Math.random()*26};
   }
 
+  /* La constelación cambia lento: recalcular los enlaces cada ~200 ms y
+     agruparlos por brillo cuesta mucho menos que O(N²) en cada frame. */
+  var enlaces=[[],[],[],[],[],[]],ultimoCache=-1e9;
+  function cacheEnlaces(ox,oy){
+    for(var b=0;b<6;b++)enlaces[b].length=0;
+    for(var i=0;i<P.length;i++){
+      var p=P[i],px=p.x+ox*90*p.z,py=p.y+oy*90*p.z;
+      for(var j=i+1;j<P.length;j++){
+        var o=P[j],ax=px-(o.x+ox*90*o.z),ay=py-(o.y+oy*90*o.z),d2=ax*ax+ay*ay;
+        if(d2<12100){
+          var a=(1-Math.sqrt(d2)/110)*.18*Math.min(p.z,o.z);
+          if(a>.012){
+            var bk=Math.min(5,Math.floor(a/.03));
+            enlaces[bk].push(i,j);
+          }
+        }
+      }
+    }
+  }
+
   function frame(t){
     requestAnimationFrame(frame);
     if(t-prev<26) return;
@@ -167,18 +187,20 @@
     x.clearRect(0,0,W,H);
     var ox=(mx-W/2)/W*.03,oy=(my-H/2)/H*.03;
 
-    /* constelación */
-    for(var i=0;i<P.length;i++){
-      var p=P[i],px=p.x+ox*90*p.z,py=p.y+oy*90*p.z;
-      for(var j=i+1;j<P.length;j++){
-        var o=P[j],qx=o.x+ox*90*o.z,qy=o.y+oy*90*o.z,
-            ax=px-qx,ay=py-qy,d2=ax*ax+ay*ay;
-        if(d2<12100){
-          var a=(1-Math.sqrt(d2)/110)*.18*Math.min(p.z,o.z);
-          x.strokeStyle='rgba(255,255,255,'+a.toFixed(3)+')';
-          x.lineWidth=.7;x.beginPath();x.moveTo(px,py);x.lineTo(qx,qy);x.stroke();
-        }
+    /* constelación (6 trazos en vez de ~200) */
+    if(t-ultimoCache>200){cacheEnlaces(ox,oy);ultimoCache=t}
+    x.lineWidth=.7;
+    for(var b=0;b<6;b++){
+      var l=enlaces[b];
+      if(!l.length)continue;
+      x.strokeStyle='rgba(255,255,255,'+((b*.03+.015).toFixed(3))+')';
+      x.beginPath();
+      for(var e=0;e<l.length;e+=2){
+        var pa=P[l[e]],pb=P[l[e+1]];
+        x.moveTo(pa.x+ox*90*pa.z,pa.y+oy*90*pa.z);
+        x.lineTo(pb.x+ox*90*pb.z,pb.y+oy*90*pb.z);
       }
+      x.stroke();
     }
 
     /* estrellas */
@@ -254,7 +276,7 @@
   var x=c.getContext('2d'),W=0,H=0,dpr=1;
 
   function size(){
-    dpr=Math.min(window.devicePixelRatio||1,2);
+    dpr=Math.min(window.devicePixelRatio||1,1.5);
     W=c.width=Math.floor(innerWidth*dpr);
     H=c.height=Math.floor(innerHeight*dpr);
   }
@@ -270,7 +292,7 @@
   g.addColorStop(1,'rgba(255,255,255,0)');
   sx.fillStyle=g;sx.fillRect(0,0,32,32);
 
-  var P=[],MAX=120,last={x:0,y:0,has:false},run=false;
+  var P=[],MAX=80,last={x:0,y:0,has:false},run=false,prev=0;
 
   function add(px,py,vx,vy,big){
     if(P.length>=MAX)P.shift();
@@ -304,7 +326,10 @@
     if(!run){run=true;requestAnimationFrame(frame)}
   }
 
-  function frame(){
+  function frame(t){
+    /* cap a ~33 fps: el polvo se ve igual y cuesta la mitad */
+    if(t-prev<30){requestAnimationFrame(frame);return}
+    prev=t;
     x.clearRect(0,0,W,H);
     x.globalCompositeOperation='lighter';
     for(var i=P.length-1;i>=0;i--){
