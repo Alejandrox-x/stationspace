@@ -69,7 +69,6 @@ body::before{
 }
 
 #stars{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:1}
-#trail{position:fixed;inset:0;z-index:55;pointer-events:none;display:block}
 
 .sprite{display:none}
 

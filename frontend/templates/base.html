@@ -20,7 +20,6 @@
   <svg><use href="#i-wifi"/></svg>
   <svg><use href="#i-chip"/></svg>
 </div>
-<canvas id="trail" aria-hidden="true"></canvas>
 
 <!-- ===== Iconos (sprite SVG, sin librerías) ===== -->
 <svg class="sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -269,94 +268,6 @@
   for(var j=0;j<els.length;j++)io.observe(els[j]);
 })();
 
-/* ---------- Estela del cursor (cursor trail) ---------- */
-(function(){
-  var c=document.getElementById('trail');
-  if(!c) return;
-  var x=c.getContext('2d'),W=0,H=0,dpr=1;
-
-  function size(){
-    dpr=Math.min(window.devicePixelRatio||1,1.5);
-    W=c.width=Math.floor(innerWidth*dpr);
-    H=c.height=Math.floor(innerHeight*dpr);
-  }
-  size();
-  addEventListener('resize',size);
-
-  /* chispa pre-renderizada (sin shadowBlur) */
-  var spr=document.createElement('canvas');spr.width=spr.height=32;
-  var sx=spr.getContext('2d'),g=sx.createRadialGradient(16,16,0,16,16,16);
-  g.addColorStop(0,'rgba(255,255,255,1)');
-  g.addColorStop(.18,'rgba(255,255,255,.85)');
-  g.addColorStop(.45,'rgba(255,255,255,.22)');
-  g.addColorStop(1,'rgba(255,255,255,0)');
-  sx.fillStyle=g;sx.fillRect(0,0,32,32);
-
-  var P=[],MAX=80,last={x:0,y:0,has:false},run=false,prev=0;
-
-  function add(px,py,vx,vy,big){
-    if(P.length>=MAX)P.shift();
-    P.push({
-      x:px,y:py,
-      vx:vx*.055+(Math.random()-.5)*.7,
-      vy:vy*.055+(Math.random()-.5)*.7,
-      life:1,
-      dec:.014+Math.random()*.014,
-      r:(big?3.2:1.8)+Math.random()*2.4
-    });
-  }
-
-  function onMove(e){
-    var px=e.clientX,py=e.clientY;
-    if(last.has){
-      var dx=px-last.x,dy=py-last.y,d=Math.sqrt(dx*dx+dy*dy);
-      if(d<2)return;
-      var n=Math.min(5,Math.max(1,Math.round(d/8)));
-      for(var i=0;i<n;i++)add(last.x+dx*i/n,last.y+dy*i/n,dx,dy);
-    }
-    last.x=px;last.y=py;last.has=true;
-    if(!run){run=true;requestAnimationFrame(frame)}
-  }
-
-  function burst(e){
-    for(var i=0;i<10;i++){
-      var a=Math.random()*6.283,s=1.5+Math.random()*2.5;
-      add(e.clientX,e.clientY,Math.cos(a)*s*10,Math.sin(a)*s*10,true);
-    }
-    if(!run){run=true;requestAnimationFrame(frame)}
-  }
-
-  function frame(t){
-    /* cap a ~33 fps: el polvo se ve igual y cuesta la mitad */
-    if(t-prev<30){requestAnimationFrame(frame);return}
-    prev=t;
-    x.clearRect(0,0,W,H);
-    x.globalCompositeOperation='lighter';
-    for(var i=P.length-1;i>=0;i--){
-      var p=P[i];
-      p.x+=p.vx;p.y+=p.vy;
-      p.vx*=.96;p.vy*=.96;p.vy+=.03;
-      p.life-=p.dec;
-      if(p.life<=0){P.splice(i,1);continue}
-      var r=p.r*(.35+p.life*.95)*dpr;
-      x.globalAlpha=p.life*p.life*.9;
-      x.drawImage(spr,p.x*dpr-r*2,p.y*dpr-r*2,r*4,r*4);
-    }
-    x.globalAlpha=1;x.globalCompositeOperation='source-over';
-    if(P.length){requestAnimationFrame(frame)}
-    else{run=false;x.clearRect(0,0,W,H)}
-  }
-
-  addEventListener('pointermove',onMove,{passive:true});
-  addEventListener('pointerdown',burst,{passive:true});
-  /* dedo: pointermove se cancela al hacer scroll, touchmove no */
-  addEventListener('touchmove',function(e){
-    var t=e.touches&&e.touches[0];
-    if(t)onMove({clientX:t.clientX,clientY:t.clientY});
-  },{passive:true});
-  document.addEventListener('pointerleave',function(){last.has=false},{passive:true});
-  addEventListener('blur',function(){last.has=false});
-})();
 </script>
 {% block js %}{% endblock %}
 </body>
