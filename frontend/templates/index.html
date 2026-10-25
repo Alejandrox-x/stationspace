@@ -1,15 +1,200 @@
-{% extends "base.html" %}{% block t %}Inicio{% endblock %}{% block c %}
-<div class="hero">
-<div class="orbit"><span class="core"></span>
-<svg viewBox="0 0 120 120"><ellipse cx="60" cy="60" rx="52" ry="20" stroke="rgba(103,232,249,.35)" fill="none" stroke-width="1" transform="rotate(-24 60 60)"/><circle cx="15" cy="42" r="4.5" fill="#c4b5fd"/><circle cx="103" cy="80" r="3" fill="#67e8f9"/></svg></div>
-<div class="badge"><span class="dot"></span> Estación en línea</div>
-<h1 style="margin-top:18px">Tu casa, <span>conectada a su aire</span></h1>
-<p class="mut">StationSpace vigila tu hogar 24/7: temperatura, humedad, fugas y lluvia medidos en tiempo real por sensores IoT, con historial, alertas y un asistente IA propio.</p>
-<div class="chips"><span>🌡_clima</span><span>🟤_fugas</span><span>🌧_lluvia</span><span>🤖_asistente_IA</span></div>
-{% if user %}
-<p><a class="btn" href="/dashboard">🛰 Abrir panel</a></p>
-{% else %}
-<p><a class="btn" href="/registro">Crear cuenta</a> <a class="btn ghost" href="/login">Entrar</a></p>
-{% endif %}
+{% extends "base.html" %}
+{% block t %}Inicio{% endblock %}
+
+{% block c %}
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="orbs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <div class="radar" aria-hidden="true">
+    <i></i><i></i><i></i>
+    <b></b>
+    <span class="radar-core"></span>
+  </div>
+
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="pulse"></span> Sistema activo · 24/7</p>
+    <h1 class="display">El aire de tu casa,<br>medido en <span class="outline">tiempo real</span>.</h1>
+    <p>Temperatura, humedad, fugas y lluvia leídos por sensores IoT y publicados cada minuto. Historial, estadísticas y un asistente con IA que entiende lo que pasa en tu hogar.</p>
+
+    <div class="hero-cta">
+      {% if user %}
+        <a class="btn" href="/dashboard">Abrir panel <svg class="ic" style="width:16px;height:16px"><use href="#i-arrow"/></svg></a>
+        <a class="btn ghost" href="/estadisticas">Ver estadísticas</a>
+      {% else %}
+        <a class="btn" href="/registro">Crear cuenta <svg class="ic" style="width:16px;height:16px"><use href="#i-arrow"/></svg></a>
+        <a class="btn ghost" href="/login">Entrar</a>
+      {% endif %}
+    </div>
+
+    <p class="hero-note"><span class="pulse"></span><span>ESP32-S3 · 1 lectura por minuto</span></p>
+  </div>
+
+  <aside class="live" aria-label="Última lectura de la estación">
+    <span class="scan" aria-hidden="true"></span>
+    <div class="live-head">
+      <span>Lectura en vivo</span>
+      <span class="badge" id="lv-badge"><span class="dot"></span><span id="lv-st">Conectando</span></span>
+    </div>
+    <div class="live-grid">
+      <div class="live-cell"><b id="lv-t">--</b><i>Temperatura</i></div>
+      <div class="live-cell"><b id="lv-h">--</b><i>Humedad</i></div>
+      <div class="live-cell"><b id="lv-s">--</b><i>Terreno</i></div>
+      <div class="live-cell"><b id="lv-n">--</b><i>Lluvia</i></div>
+    </div>
+    <div class="live-foot">
+      <span id="lv-ts">Sin lecturas todavía</span>
+      <span>ESP32-S3</span>
+    </div>
+  </aside>
+</section>
+
+<!-- ============ MARQUEE ============ -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>DHT11<em>·</em>Temperatura y humedad<em>·</em>YL-69<em>·</em>Humedad de terreno<em>·</em>Placa de lluvia<em>·</em>ESP32-S3<em>·</em>WiFi 2.4 GHz<em>·</em>PostgreSQL<em>·</em>Asistente IA<em>·</em></span>
+    <span>DHT11<em>·</em>Temperatura y humedad<em>·</em>YL-69<em>·</em>Humedad de terreno<em>·</em>Placa de lluvia<em>·</em>ESP32-S3<em>·</em>WiFi 2.4 GHz<em>·</em>PostgreSQL<em>·</em>Asistente IA<em>·</em></span>
+  </div>
 </div>
+
+<!-- ============ CÓMO FUNCIONA ============ -->
+<section class="section">
+  <div class="sec-head reveal">
+    <p class="eyebrow">Cómo funciona</p>
+    <h2 class="sec-title">Del sensor a la pantalla, sin intermediarios.</h2>
+    <p>Tres pasos. Sin apps que instalar, sin cables de por medio: la estación hace todo sola.</p>
+  </div>
+
+  <div class="steps reveal">
+    <article class="step">
+      <p class="n">01 — MEDIR</p>
+      <h3>Sensores en la maqueta</h3>
+      <p>DHT11 lee temperatura y humedad del aire; YL-69 mide el terreno y detecta filtraciones; la placa roja vigila la lluvia en el techo. El ESP32-S3 suaviza las lecturas con un filtro EMA.</p>
+    </article>
+    <article class="step">
+      <p class="n">02 — ENVIAR</p>
+      <h3>Un POST cada minuto</h3>
+      <p>Por WiFi 2.4 GHz, el chip empuja la lectura al servidor con un token privado. Si no hay internet, reintenta cada 15 segundos y sigue midiendo en local.</p>
+    </article>
+    <article class="step">
+      <p class="n">03 — MOSTRAR</p>
+      <h3>Panel, historial e IA</h3>
+      <p>Flask guarda cada lectura en SQLite (local) o PostgreSQL (nube) y sirve el panel en vivo, las estadísticas por periodo y el asistente que conversa con los datos de tu casa.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============ HARDWARE ============ -->
+<section class="section">
+  <div class="sec-head reveal">
+    <p class="eyebrow">Hardware</p>
+    <h2 class="sec-title">Cinco conexiones. Cero misterio.</h2>
+    <p>Todo cabe en una placa ESP32-S3 alimentada por USB. Los sensores analógicos trabajan a 3.3&nbsp;V.</p>
+  </div>
+
+  <div class="hw reveal">
+    <figure class="hw-fig">
+      <svg viewBox="0 0 460 300" role="img" aria-label="Diagrama de conexiones del ESP32-S3">
+        <!-- conexiones -->
+        <g stroke="rgba(255,255,255,.28)" stroke-width="1" stroke-dasharray="3 4" fill="none">
+          <path d="M150 63 L170 128"/>
+          <path d="M310 63 L290 128"/>
+          <path d="M150 237 L170 172"/>
+          <path d="M310 237 L290 172"/>
+        </g>
+        <!-- nodos -->
+        <g fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.16)">
+          <rect x="40" y="40" width="110" height="46" rx="9"/>
+          <rect x="310" y="40" width="110" height="46" rx="9"/>
+          <rect x="40" y="214" width="110" height="46" rx="9"/>
+          <rect x="310" y="214" width="110" height="46" rx="9"/>
+        </g>
+        <!-- chip -->
+        <rect x="170" y="118" width="120" height="64" rx="12" fill="rgba(255,255,255,.10)" stroke="rgba(255,255,255,.45)"/>
+        <rect x="182" y="130" width="96" height="40" rx="7" fill="none" stroke="rgba(255,255,255,.18)" stroke-dasharray="2 3"/>
+        <circle cx="170" cy="128" r="2.6" fill="#fff"/>
+        <circle cx="290" cy="128" r="2.6" fill="#fff"/>
+        <circle cx="170" cy="172" r="2.6" fill="#fff"/>
+        <circle cx="290" cy="172" r="2.6" fill="#fff"/>
+        <!-- textos -->
+        <g font-family="ui-monospace,Consolas,monospace">
+          <text x="52" y="60" font-size="9.5" fill="#fafaf9" letter-spacing="1.4">DHT11</text>
+          <text x="52" y="75" font-size="8.5" fill="#8b8b93" letter-spacing=".6">GPIO 4</text>
+          <text x="322" y="60" font-size="9.5" fill="#fafaf9" letter-spacing="1.4">YL-69</text>
+          <text x="322" y="75" font-size="8.5" fill="#8b8b93" letter-spacing=".6">GPIO 6</text>
+          <text x="52" y="234" font-size="9.5" fill="#fafaf9" letter-spacing="1.4">LLUVIA</text>
+          <text x="52" y="249" font-size="8.5" fill="#8b8b93" letter-spacing=".6">GPIO 10</text>
+          <text x="322" y="234" font-size="9.5" fill="#fafaf9" letter-spacing="1.4">OLED</text>
+          <text x="322" y="249" font-size="8.5" fill="#8b8b93" letter-spacing=".6">SDA 8 · SCL 9</text>
+          <text x="230" y="146" font-size="10.5" fill="#fafaf9" text-anchor="middle" letter-spacing="1.2">ESP32-S3</text>
+          <text x="230" y="160" font-size="7.5" fill="#8b8b93" text-anchor="middle" letter-spacing=".8">ADC · I2C · WiFi</text>
+        </g>
+      </svg>
+    </figure>
+
+    <div class="hw-list">
+      <div class="hw-row"><svg class="ic"><use href="#i-thermo"/></svg><b>DHT11 · clima</b><span>GPIO 4</span></div>
+      <div class="hw-row"><svg class="ic"><use href="#i-sprout"/></svg><b>YL-69 · terreno</b><span>GPIO 6</span></div>
+      <div class="hw-row"><svg class="ic"><use href="#i-rain"/></svg><b>Placa de lluvia</b><span>GPIO 10</span></div>
+      <div class="hw-row"><svg class="ic"><use href="#i-chip"/></svg><b>OLED SH1106</b><span>I2C 0x3C</span></div>
+      <div class="hw-row"><svg class="ic"><use href="#i-wifi"/></svg><b>WiFi 2.4 GHz</b><span>WPA2</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ QUÉ MIDE ============ -->
+<section class="section">
+  <div class="sec-head reveal">
+    <p class="eyebrow">Qué mide</p>
+    <h2 class="sec-title">Cuatro señales, un estado claro.</h2>
+    <p>La estación combina las lecturas y publica un estado: normal, advertencia o alerta.</p>
+  </div>
+
+  <div class="kpis reveal">
+    <article class="kpi">
+      <div class="k-ic"><svg class="ic"><use href="#i-thermo"/></svg></div>
+      <div class="k-v">±2°</div>
+      <div class="k-l">Temperatura</div>
+      <div class="k-s">DHT11 · rango 0–50 °C</div>
+    </article>
+    <article class="kpi">
+      <div class="k-ic"><svg class="ic"><use href="#i-drop"/></svg></div>
+      <div class="k-v">±5%</div>
+      <div class="k-l">Humedad del aire</div>
+      <div class="k-s">DHT11 · 20–90 % RH</div>
+    </article>
+    <article class="kpi">
+      <div class="k-ic"><svg class="ic"><use href="#i-sprout"/></svg></div>
+      <div class="k-v">≤400</div>
+      <div class="k-l">Terreno encharcado</div>
+      <div class="k-s">ADC 0–1023</div>
+    </article>
+    <article class="kpi">
+      <div class="k-ic"><svg class="ic"><use href="#i-rain"/></svg></div>
+      <div class="k-v">≥150</div>
+      <div class="k-l">Lluvia detectada</div>
+      <div class="k-s">ADC 0–1023</div>
+    </article>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="section" style="padding-bottom:0">
+  <div class="panel reveal" style="text-align:center;padding:clamp(34px,6vw,64px) 24px">
+    <p class="eyebrow" style="margin-bottom:20px">Empieza ahora</p>
+    <h2 class="sec-title" style="max-width:640px;margin:0 auto 14px">Tu casa ya está hablando.<br>Solo falta que la escuches.</h2>
+    <p class="mut" style="max-width:520px;margin:0 auto 30px">Crea tu cuenta y abre el panel en vivo, o entra con la cuenta de demostración en la expo.</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      {% if user %}
+        <a class="btn" href="/dashboard">Abrir panel <svg class="ic" style="width:16px;height:16px"><use href="#i-arrow"/></svg></a>
+      {% else %}
+        <a class="btn" href="/registro">Crear cuenta <svg class="ic" style="width:16px;height:16px"><use href="#i-arrow"/></svg></a>
+        <a class="btn ghost" href="/login">Ya tengo cuenta</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
 {% endblock %}
+
+{% block js %}<script src="{{ url_for('static', filename='landing.js') }}"></script>{% endblock %}

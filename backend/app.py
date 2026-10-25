@@ -207,6 +207,16 @@ def api_ultima():
     return jsonify(r if r else {})
 
 
+@app.get("/api/publica")
+def api_publica():
+    """Última lectura sin login: solo lo que se muestra en la portada."""
+    r = q_one("SELECT temperatura,humedad,suelo_pct,lluvia_pct,estado,ts"
+              " FROM lecturas ORDER BY id DESC LIMIT 1")
+    resp = jsonify(r if r else {})
+    resp.headers["Cache-Control"] = "public, max-age=30"
+    return resp
+
+
 @app.get("/api/historial")
 @login_required
 def api_historial():

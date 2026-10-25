@@ -4,3 +4,5 @@ __pycache__/
 backend/.env
 database/*.db
 *.db-journal
+QRs/
+ip_esp32.txt

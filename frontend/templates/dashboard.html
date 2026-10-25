@@ -1,32 +1,98 @@
-{% extends "base.html" %}{% block t %}Panel{% endblock %}{% block c %}
-<div class="rowc">
-<div class="badge"><span class="dot"></span> <span id="st2">Conectando…</span></div>
-<h2>TELEMETRÍA</h2>
+{% extends "base.html" %}
+{% block t %}Panel{% endblock %}
+
+{% block c %}
+
+<div class="page-head">
+  <div>
+    <p class="eyebrow"><span class="pulse"></span> Telemetría en vivo</p>
+    <h1 class="display sm">Hola, <span class="outline">{{ nombre }}</span></h1>
+  </div>
+  <div class="head-side">
+    <div class="badge"><span class="dot"></span><span id="st2">Conectando…</span></div>
+    <p class="stamp" id="st">Cargando…</p>
+  </div>
 </div>
-<h1>Hola, <span>{{ nombre }}</span></h1>
-<div class="grid">
-<div class="card"><span class="ico">🌡</span><div class="v" id="t">--</div><div class="l">Temperatura<small id="ta"></small></div><div class="bar"><i id="tb"></i></div></div>
-<div class="card"><span class="ico">💧</span><div class="v" id="h">--</div><div class="l">Humedad<small>&nbsp;</small></div><div class="bar"><i id="hb"></i></div></div>
-<div class="card"><span class="ico">🪴</span><div class="v" id="s">--</div><div class="l">Terreno<small id="sa"></small></div><div class="bar"><i id="sb"></i></div></div>
-<div class="card"><span class="ico">🌧</span><div class="v" id="n">--</div><div class="l">Lluvia<small id="na"></small></div><div class="bar"><i id="nb"></i></div></div>
+
+<div class="kpis">
+  <article class="kpi">
+    <div class="k-ic"><svg class="ic"><use href="#i-thermo"/></svg></div>
+    <div class="k-v" id="t">--</div>
+    <div class="k-l">Temperatura</div>
+    <div class="k-s" id="ta">DHT11 · ±2 °C</div>
+    <div class="bar"><i id="tb"></i></div>
+  </article>
+
+  <article class="kpi">
+    <div class="k-ic"><svg class="ic"><use href="#i-drop"/></svg></div>
+    <div class="k-v" id="h">--</div>
+    <div class="k-l">Humedad</div>
+    <div class="k-s">DHT11 · ±5 %</div>
+    <div class="bar"><i id="hb"></i></div>
+  </article>
+
+  <article class="kpi">
+    <div class="k-ic"><svg class="ic"><use href="#i-sprout"/></svg></div>
+    <div class="k-v" id="s">--</div>
+    <div class="k-l">Terreno</div>
+    <div class="k-s" id="sa">&nbsp;</div>
+    <div class="bar"><i id="sb"></i></div>
+  </article>
+
+  <article class="kpi">
+    <div class="k-ic"><svg class="ic"><use href="#i-rain"/></svg></div>
+    <div class="k-v" id="n">--</div>
+    <div class="k-l">Lluvia</div>
+    <div class="k-s" id="na">&nbsp;</div>
+    <div class="bar"><i id="nb"></i></div>
+  </article>
 </div>
-<p class="mut" id="st">Cargando...</p>
-<div class="panel">
-<div class="rowc"><h2>Historial · 24 h</h2><span class="mut" id="np" style="font-size:11px"></span></div>
-<canvas id="ch" class="chart" width="640" height="220"></canvas>
-<div class="legend"><span><i style="background:#fafaf9"></i>Temp (°C)</span><span><i style="background:#67e8f9"></i>Hum (%)</span></div>
-</div>
-<button class="fab" id="fab">🤖</button>
-<aside class="pnl" id="pnl">
-<header><span class="ava">🛰</span><span>Asistente StationSpace<small>EN LÍNEA · VIGILANDO TU CASA</small></span><button id="px">✕</button></header>
-<div id="log" class="log"><div class="msg ai">¡Hola! 👋 Soy el asistente de tu casa. Pregúntame por el clima de aquí, las fugas o la lluvia… o cualquier otra cosa.</div></div>
-<div class="qchips">
-<button data-q="¿hay algún problema con la casa hoy?">¿Problemas hoy?</button>
-<button data-q="¿hay fuga?">¿Hay fuga?</button>
-<button data-q="¿en qué estado está mi casa?">Estado de la casa</button>
-<button data-q="chiste de programadores">Cuéntame algo 😄</button>
-</div>
-<div class="inrow"><input id="qi" placeholder="Escribe..."><button id="qb">Enviar</button></div>
+
+<section class="panel">
+  <div class="p-head">
+    <h2>Historial · 24 h</h2>
+    <span class="stamp" id="np"></span>
+  </div>
+  <canvas id="ch" class="chart" width="1200" height="330"></canvas>
+  <div class="legend">
+    <span><i style="background:#fafaf9"></i>Temp (°C)</span>
+    <span><i style="background:#8b8b93"></i>Humedad (%)</span>
+  </div>
+</section>
+{% endblock %}
+
+{% block flotante %}
+<div class="pnl-bg" id="pnl-bg" aria-hidden="true"></div>
+
+<button class="fab" id="fab" aria-label="Abrir asistente" aria-expanded="false" aria-controls="pnl">
+  <svg class="ic"><use href="#i-bot"/></svg>
+</button>
+
+<aside class="pnl" id="pnl" aria-label="Asistente StationSpace">
+  <header>
+    <span class="ava"><svg class="ic"><use href="#i-bot"/></svg></span>
+    <span><b>Asistente StationSpace</b><small>En línea · vigilando tu casa</small></span>
+    <button id="px" aria-label="Cerrar asistente" title="Cerrar (Esc)">
+      <svg class="ic" style="width:15px;height:15px"><use href="#i-x"/></svg>
+    </button>
+  </header>
+
+  <div id="log" class="log">
+    <div class="msg ai">¡Hola! 👋 Soy el asistente de tu casa. Pregúntame por el clima de aquí, las fugas o la lluvia… o cualquier otra cosa.</div>
+  </div>
+
+  <div class="qchips">
+    <button data-q="¿hay algún problema con la casa hoy?">¿Problemas hoy?</button>
+    <button data-q="¿hay fuga?">¿Hay fuga?</button>
+    <button data-q="¿en qué estado está mi casa?">Estado de la casa</button>
+    <button data-q="chiste de programadores">Cuéntame algo 😄</button>
+  </div>
+
+  <div class="inrow">
+    <input id="qi" placeholder="Pregunta lo que quieras…" autocomplete="off">
+    <button id="qb" aria-label="Enviar"><svg class="ic"><use href="#i-send"/></svg></button>
+  </div>
 </aside>
+
 <script src="{{ url_for('static', filename='app.js') }}"></script>
 {% endblock %}

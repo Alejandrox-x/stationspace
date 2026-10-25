@@ -22,26 +22,37 @@ function porDia(rows){
     if(r.temperatura!=null){D[d].t+=r.temperatura;D[d].tn++}
     if(r.humedad!=null){D[d].h+=r.humedad;D[d].hn++}}
   orden.sort();
-  var c=$('ch'),x=c.getContext('2d'),W=c.width,Hc=c.height;
+  var c=$('ch');
+  if(!c)return;
+  var dpr=Math.min(2,window.devicePixelRatio||1);
+  var W=c.clientWidth||640,Hc=c.clientHeight||300;
+  var bw=Math.round(W*dpr),bh=Math.round(Hc*dpr);
+  if(c.width!==bw||c.height!==bh){c.width=bw;c.height=bh}
+  var x=c.getContext('2d');
+  x.setTransform(dpr,0,0,dpr,0,0);
   x.clearRect(0,0,W,Hc);
-  x.strokeStyle='rgba(103,232,249,.09)';x.lineWidth=1;
+  x.strokeStyle='rgba(255,255,255,.06)';x.lineWidth=1;
   for(var g=1;g<4;g++){x.beginPath();x.moveTo(0,Hc*g/4);x.lineTo(W,Hc*g/4);x.stroke()}
-  if(!orden.length){x.fillStyle='#64748b';x.font='13px Consolas,monospace';x.textAlign='center';
-    x.fillText('Sin_datos por día aún.',W/2,Hc/2);return}
-  var dayW=Math.min(72,(W-40)/orden.length),x0=22,yb=Hc-24;
+  if(!orden.length){x.fillStyle='#55555d';x.font='12px ui-monospace,Consolas,monospace';x.textAlign='center';
+    x.fillText('Sin datos por día aún.',W/2,Hc/2);return}
+  var dayW=Math.min(72,(W-40)/orden.length),x0=22,yb=Hc-28,maxH=Hc-64;
   $('nd').textContent=orden.length+' día(s)';
   for(var j=0;j<orden.length;j++){var o=orden[j];
     var t=D[o].tn?D[o].t/D[o].tn:null,h=D[o].hn?D[o].h/D[o].hn:null;
     var cx=x0+dayW*j+dayW/2;
-    if(t!=null){var ht=Math.max(2,(t/50)*160);
-      x.fillStyle='rgba(196,181,253,.9)';x.fillRect(cx-11,yb-ht,9,ht);
-      if(dayW>38){x.fillStyle='#c4b5fd';x.font='9px Consolas,monospace';x.textAlign='center';
+    if(t!=null){var ht=Math.max(2,(t/50)*maxH);
+      x.shadowColor='rgba(250,250,249,.7)';x.shadowBlur=10;
+      x.fillStyle='rgba(250,250,249,.9)';x.fillRect(cx-11,yb-ht,9,ht);
+      x.shadowBlur=0;
+      if(dayW>38){x.fillStyle='#fafaf9';x.font='9px ui-monospace,Consolas,monospace';x.textAlign='center';
         x.fillText(t.toFixed(0)+'°',cx-6,yb-ht-4)}}
-    if(h!=null){var hh=Math.max(2,(h/100)*160);
-      x.fillStyle='rgba(103,232,249,.75)';x.fillRect(cx+2,yb-hh,9,hh);
-      if(dayW>38){x.fillStyle='#67e8f9';x.font='9px Consolas,monospace';x.textAlign='center';
+    if(h!=null){var hh=Math.max(2,(h/100)*maxH);
+      x.shadowColor='rgba(139,139,147,.55)';x.shadowBlur=9;
+      x.fillStyle='rgba(139,139,147,.8)';x.fillRect(cx+2,yb-hh,9,hh);
+      x.shadowBlur=0;
+      if(dayW>38){x.fillStyle='#8b8b93';x.font='9px ui-monospace,Consolas,monospace';x.textAlign='center';
         x.fillText(Math.round(h)+'%',cx+6,yb-hh-4)}}
-    x.fillStyle='#9ca3af';x.font='10px Consolas,monospace';x.textAlign='center';
+    x.fillStyle='#55555d';x.font='10px ui-monospace,Consolas,monospace';x.textAlign='center';
     x.fillText(o.slice(5),cx,Hc-8);
   }
 }
@@ -68,7 +79,7 @@ async function cargar(h){
   $('rango').textContent=RANGO[h];
   var rows=[];
   try{rows=await (await fetch('/api/historial?horas='+h)).json()}catch(e){}
-  if(!rows||!rows.length){$('msej').textContent='Todavía no hay datos suficientes: la estación empuja lecturas cada 5 minutos (debe estar encendida y con WiFi).';return}
+  if(!rows||!rows.length){$('msej').textContent='Todavía no hay datos suficientes: la estación empuja lecturas cada 1 minuto (debe estar encendida y con WiFi).';return}
   var PT=[],PH=[],nSe=0,nEn=0,nLl=0,n=rows.length,cnf={n:0,w:0,a:0};
   for(var i=0;i<n;i++){var r=rows[i];
     if(r.temperatura!=null)PT.push({v:r.temperatura,ts:r.ts});
