@@ -66,6 +66,15 @@ def close_db(_e=None):
         d.close()
 
 
+def fila(r):
+    """Normaliza la fila: Postgres devuelve datetime en `ts`, el front espera texto."""
+    d = dict(r)
+    for k, v in d.items():
+        if isinstance(v, datetime):
+            d[k] = v.strftime("%Y-%m-%d %H:%M:%S")
+    return d
+
+
 def q_one(sql, params=()):
     con = db()
     if IS_PG:
@@ -73,7 +82,7 @@ def q_one(sql, params=()):
         cur.execute(adapt(sql), params)
         r = cur.fetchone()
         cur.close()
-        return dict(r) if r else None
+        return fila(r) if r else None
     r = con.execute(sql, params).fetchone()
     return dict(r) if r else None
 
@@ -85,7 +94,7 @@ def q_all(sql, params=()):
         cur.execute(adapt(sql), params)
         rows = cur.fetchall()
         cur.close()
-        return [dict(r) for r in rows]
+        return [fila(r) for r in rows]
     return [dict(r) for r in con.execute(sql, params).fetchall()]
 
 
