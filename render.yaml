@@ -18,9 +18,9 @@ services:
         value: nvidia/nemotron-3.5-bolt-e4b
       - key: DATABASE_URL
         fromDatabase:
-          name: stationspace-db
+          name: stationspace-db2
           property: connectionString
 
 databases:
-  - name: stationspace-db
+  - name: stationspace-db2
     plan: free
