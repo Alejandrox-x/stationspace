@@ -35,6 +35,7 @@ body{
   display:flex;
   flex-direction:column;
   overflow-x:hidden;
+  overflow-x:clip; /* sin desplazamiento lateral posible: los fixed no se corren */
   -webkit-font-smoothing:antialiased;
   text-rendering:optimizeLegibility;
 }
@@ -193,6 +194,7 @@ hr.hair{border:0;border-top:1px solid var(--bd);margin:0}
 /* ---------- 8. Hero (inicio) ---------- */
 .hero{
   position:relative;
+  overflow-x:hidden;overflow-x:clip; /* los orbes no ensanchan la pagina (fix del circulo que se va a un lado) */
   display:grid;grid-template-columns:1.12fr .88fr;
   gap:clamp(28px,5vw,64px);align-items:center;
   padding:clamp(34px,6vh,76px) 0 clamp(28px,4vh,44px);
@@ -1302,3 +1304,10 @@ body.saliendo{opacity:0;transition:opacity .18s ease}
   transition:transform .7s var(--ease) .25s;
 }
 .sec-head.in .sec-title::after{transform:scaleX(1)}
+
+/* ---------- 39. Celulares: menos capas decorativas (rendimiento) ---------- */
+/* El preloader circular y sus animaciones NO se tocan (siempre visibles). */
+@media(max-width:760px){
+  .orbs{inset:-10% 0}                 /* menos area de brillo fuera de pantalla */
+  .orbs i:nth-child(2),.orbs i:nth-child(4){display:none} /* quedan 2 orbes */
+}

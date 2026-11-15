@@ -27,7 +27,10 @@ def es_esp(ip):
 base = sys.argv[1].rstrip('.') if len(sys.argv) > 1 else "192.168.18"
 hosts = [f"{base}.{i}" for i in range(1, 255)] + ["192.168.4.1"]
 
-with concurrent.futures.ThreadPoolExecutor(max_workers=300) as ex:
+# Concurrencia BAJA a proposito: el WebServer del ESP32 tiene una cola de
+# conexiones minuscula; si golpearemos el /24 con cientos de sockets a la vez,
+# el chip descarta los SYNs y el barrido no lo ve. 60 hilos alcanzan en ~6 s.
+with concurrent.futures.ThreadPoolExecutor(max_workers=60) as ex:
     abiertos = [r for r in ex.map(alive, hosts) if r]
 
 for ip in abiertos:
