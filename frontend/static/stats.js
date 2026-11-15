@@ -55,6 +55,22 @@ function porDia(rows){
     x.fillStyle='#55555d';x.font='10px ui-monospace,Consolas,monospace';x.textAlign='center';
     x.fillText(o.slice(5),cx,Hc-8);
   }
+
+  /* la gráfica se revela de izquierda a derecha (solo la primera vez) */
+  try{
+    if(!window.__chAnimado){
+      window.__chAnimado=true;
+      var rm=false;try{rm=matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
+      if(!rm){
+        var stc=c.style;
+        stc.transition='none';stc.clipPath='inset(0 100% 0 0)';
+        c.getBoundingClientRect();
+        stc.transition='clip-path 1.05s cubic-bezier(.22,1,.36,1)';
+        stc.clipPath='inset(0 0% 0 0)';
+        setTimeout(function(){stc.transition='';stc.clipPath=''},1100);
+      }
+    }
+  }catch(e){}
 }
 
 function eventos(rows){

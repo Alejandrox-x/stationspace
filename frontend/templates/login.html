@@ -1,14 +1,35 @@
 {% extends "base.html" %}{% block t %}Entrar{% endblock %}{% block c %}
-<div class="auth">
-<svg width="46" height="46" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3.4" fill="#fafaf9"/><ellipse cx="12" cy="12" rx="10.5" ry="4.4" stroke="rgba(255,255,255,.6)" stroke-width="1.3" transform="rotate(-22 12 12)"/></svg>
-<h1>Entrar</h1>
-<p class="mut">Accede a tu panel de monitoreo ambiental.</p>
-{% if err %}<p class="err">{{ err }}</p>{% endif %}
-<form method="post">
-<input name="email" type="email" placeholder="Correo" required>
-<input name="password" type="password" placeholder="Clave" required>
-<button>Entrar <span style="opacity:.6">→</span></button>
-</form>
-<p class="mut">¿Sin cuenta? <a href="/registro">Créala aquí</a></p>
+<div class="auth-split">
+
+  <aside class="auth-brand" aria-hidden="true">
+    <div class="ab-radar">
+      <i></i><i></i><i></i>
+      <b class="ab-sweep"></b>
+      <span></span>
+    </div>
+    <p class="ab-line">Tu casa,<br>siempre <em>contestando</em>.</p>
+    <ul class="ab-feats">
+      <li>5 sensores en vivo</li>
+      <li>Alertas automáticas</li>
+      <li>Asistente con IA</li>
+    </ul>
+    <p class="ab-foot">StationSpace · Estación ambiental</p>
+  </aside>
+
+  <div class="auth-form">
+    <div class="auth">
+      <svg width="46" height="46" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3.4" fill="#fafaf9"/><ellipse cx="12" cy="12" rx="10.5" ry="4.4" stroke="rgba(255,255,255,.6)" stroke-width="1.3" transform="rotate(-22 12 12)"/></svg>
+      <h1>Entrar</h1>
+      <p class="mut">Accede a tu panel de monitoreo ambiental.</p>
+      {% if err %}<p class="err">{{ err }}</p>{% endif %}
+      <form method="post" autocomplete="on">
+        <input name="email" type="email" placeholder="Correo" required>
+        <input name="password" type="password" placeholder="Clave" required>
+        <button>Entrar <span style="opacity:.6">→</span></button>
+      </form>
+      <p class="mut">¿Sin cuenta? <a href="/registro">Créala aquí</a></p>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

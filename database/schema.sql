@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS lecturas (
   lluvia_raw INTEGER,
   suelo_pct INTEGER,
   lluvia_pct INTEGER,
+  ruido_raw INTEGER,
+  ruido_pct INTEGER,
   estado TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_lecturas_ts ON lecturas(ts);

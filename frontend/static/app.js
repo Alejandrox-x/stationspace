@@ -99,13 +99,66 @@ function dibujar(rows){
   serie(Hm,'rgba(161,161,170,.95)',false,true);
   serie(T,'rgba(250,250,249,1)',true,false);
 
+  /* la gráfica se revela de izquierda a derecha (solo la primera vez) */
+  try{
+    if(!window.__chAnimado){
+      window.__chAnimado=true;
+      var rm=false;try{rm=matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
+      if(!rm){
+        var stc=c.style;
+        stc.transition='none';stc.clipPath='inset(0 100% 0 0)';
+        c.getBoundingClientRect();
+        stc.transition='clip-path 1.05s cubic-bezier(.22,1,.36,1)';
+        stc.clipPath='inset(0 0% 0 0)';
+        setTimeout(function(){stc.transition='';stc.clipPath=''},1100);
+      }
+    }
+  }catch(e){}
+
   if(rows.length<2){
     x.fillStyle='#55555d';x.font='11px ui-monospace,Consolas,monospace';x.textAlign='center';
     x.fillText('Sumando puntos: 1 lectura por minuto.',W/2,H-4);
   }
 }
 
-async function hist(){try{dibujar(await jget('/api/historial?horas=24'))}catch(e){}}
+/* Sparklines: mini-gráficos SVG dentro de cada tarjeta (cuestan casi nada) */
+function spark(id,vals){
+  var pl=document.getElementById(id);
+  if(!pl)return;
+  vals=(vals||[]).filter(function(v){return v!=null});
+  if(vals.length<2){pl.setAttribute('points','');return}
+  var lo=Math.min.apply(0,vals),hi=Math.max.apply(0,vals),rg=(hi-lo)||1;
+  var pts=vals.map(function(v,i){
+    return (2+i*96/(vals.length-1)).toFixed(1)+','+(27-(v-lo)/rg*23).toFixed(1);
+  }).join(' ');
+  pl.setAttribute('points',pts);
+  /* el trazo se dibuja solo (hermano del preloader: stroke-dashoffset) */
+  try{
+    var rm=false;
+    try{rm=matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
+    if(!rm){
+      var L=pl.getTotalLength();
+      pl.style.transition='none';
+      pl.style.strokeDasharray=L;
+      pl.style.strokeDashoffset=L;
+      pl.getBoundingClientRect();
+      pl.style.transition='stroke-dashoffset 1.1s cubic-bezier(.22,1,.36,1)';
+      pl.style.strokeDashoffset='0';
+    }
+  }catch(e){}
+}
+
+async function hist(){
+  try{
+    var rows=await jget('/api/historial?horas=24');
+    dibujar(rows);
+    var ult=rows.slice(-40);
+    spark('sp-t',ult.map(function(r){return r.temperatura}));
+    spark('sp-h',ult.map(function(r){return r.humedad}));
+    spark('sp-s',ult.map(function(r){return r.suelo_pct}));
+    spark('sp-n',ult.map(function(r){return r.lluvia_pct}));
+  }catch(e){}
+}
 
 refrescar();hist();
 setInterval(refrescar,30000);
@@ -149,12 +202,19 @@ async function sendQ(qtxt){
   var L=document.getElementById('log'),w=document.createElement('div');
   w.className='msg ai typing';w.innerHTML='<i></i><i></i><i></i>';
   L.appendChild(w);L.scrollTop=L.scrollHeight;
+  /* redes de seguridad: aviso a los 9 s, corte a los 2 min (nunca colgado eterno) */
+  var ctrl=('AbortController' in window)?new AbortController():null;
+  var aviso=setTimeout(function(){w.classList.add('slow')},9000);
+  var corte=setTimeout(function(){if(ctrl)ctrl.abort()},120000);
   try{
-    var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pregunta:q})});
+    var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({pregunta:q}),signal:ctrl?ctrl.signal:undefined});
+    clearTimeout(aviso);clearTimeout(corte);
     w.remove();
     addMsg(((await r.json()).respuesta||'Sin respuesta').trim());
   }catch(e){
-    w.remove();addMsg('Error de conexión.');
+    clearTimeout(aviso);clearTimeout(corte);w.remove();
+    addMsg(ctrl&&ctrl.signal.aborted?'La IA tardó demasiado y corté la espera. Pregúntame otra vez.':'Error de conexión.');
   }
 }
 

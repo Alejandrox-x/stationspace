@@ -108,8 +108,9 @@ h2.sec-title{
 /* ---------- 4. Navegación ---------- */
 .nav{
   position:sticky;top:0;z-index:60;
-  background:rgba(0,0,0,.82);
-  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  /* sin backdrop-filter: el blur del header fijo es lo que más cuesta al hacer
+     scroll en PCs modestos; un fondo casi opaco se ve igual en B/N */
+  background:rgba(0,0,0,.93);
   border-bottom:1px solid var(--bd);
 }
 .nav-in{
@@ -351,7 +352,7 @@ hr.hair{border:0;border-top:1px solid var(--bd);margin:0}
 .hw-row span{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
 
 /* ---------- 12. Tarjetas KPI ---------- */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
 .kpi{
   position:relative;overflow:hidden;
   border:1px solid var(--bd);border-radius:18px;padding:20px 20px 22px;
@@ -466,8 +467,7 @@ canvas.chart{
   position:fixed;top:0;right:0;z-index:80;
   height:100%;width:min(400px,96vw);
   display:flex;flex-direction:column;
-  background:rgba(4,4,5,.96);
-  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  background:rgba(4,4,5,.97);
   border-left:1px solid var(--bd-2);
   box-shadow:-30px 0 80px rgba(0,0,0,.8);
   transform:translateX(102%);
@@ -605,8 +605,7 @@ footer{
 /* ---------- 20. Tabs móviles ---------- */
 .tabs{
   display:none;position:fixed;left:0;right:0;bottom:0;z-index:75;
-  background:rgba(0,0,0,.92);
-  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.97);
   border-top:1px solid var(--bd);
   padding:6px 6px calc(6px + env(safe-area-inset-bottom));
   justify-content:center;
@@ -982,3 +981,324 @@ body.no-scroll{overflow:hidden}
 @media(max-width:700px){
   .float-icons svg:nth-child(3),.float-icons svg:nth-child(4){display:none}
 }
+
+/* ==========================================================================
+   30. PAQUETE WOW · preloader + luz de estado
+   ========================================================================== */
+
+/* ---------- Preloader (solo portada) ---------- */
+.wow-pre{
+  position:fixed;inset:0;z-index:200;background:#000;
+  display:none;place-items:center;
+}
+html.js .wow-pre{display:grid}
+.wow-pre.off{opacity:0;visibility:hidden;transition:opacity .55s var(--ease),visibility .55s}
+.wp-in{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.wp-brand{font-size:30px;font-weight:650;letter-spacing:-.03em;text-shadow:0 0 14px rgba(255,255,255,.42),0 0 44px rgba(255,255,255,.2)}
+.wp-brand strong{font-weight:800}
+.wp-sub{
+  font-family:var(--mono);font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--mt);
+}
+/* --- Anillo orbital del preloader --- */
+.wp-ring-wrap{position:relative;width:132px;height:132px;margin-top:16px;display:grid;place-items:center}
+.wp-ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.wp-tk{fill:none;stroke:rgba(255,255,255,.13);stroke-width:2.5}
+.wp-fl{
+  fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;
+  filter:drop-shadow(0 0 6px rgba(255,255,255,.75));
+}
+.wp-sweep{
+  position:absolute;inset:7px;border-radius:50%;
+  background:conic-gradient(from 0deg,rgba(255,255,255,.15),transparent 34%);
+  animation:giro360 2.6s linear infinite;
+}
+.wp-orbit{
+  position:absolute;inset:-9px;border-radius:50%;
+  border:1px dashed rgba(255,255,255,.28);
+  animation:giro360 9s linear infinite reverse;
+}
+.wp-orbit::after{ /* el satélite que orbita */
+  content:"";position:absolute;top:-3px;left:50%;width:5px;height:5px;margin-left:-2.5px;
+  border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.95),0 0 22px rgba(255,255,255,.5);
+}
+.wp-num{
+  position:relative;z-index:1;margin:0;
+  font-family:var(--mono);font-size:30px;font-weight:600;line-height:1;
+  letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+  text-shadow:0 0 8px rgba(255,255,255,.55),0 0 30px rgba(255,255,255,.3);
+}
+html.js body.wow-lock{overflow:hidden}
+
+/* ---------- Luz de estado (monocromo: la intensidad ES el estado) ---------- */
+/* normal (nivel 0): calma por defecto */
+/* advertencia (nivel 1): todo respira un poco más rápido */
+[data-nivel="1"] .radar b{animation-duration:4.5s;opacity:.75}
+[data-nivel="1"] .radar i{animation-duration:5.4s}
+[data-nivel="1"] .live{border-color:rgba(255,255,255,.34)}
+[data-nivel="1"] .pulse{animation-duration:1.3s}
+/* alerta (nivel 2): parpadeo de alarma, todo encendido */
+[data-nivel="2"] .radar b{animation-duration:2.4s;opacity:1}
+[data-nivel="2"] .radar i{animation-duration:2.4s}
+[data-nivel="2"] .radar-core{animation:blink .8s steps(2,end) infinite}
+[data-nivel="2"] .live{
+  border-color:rgba(255,255,255,.5);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.08),
+    0 0 70px -10px rgba(255,255,255,.65),
+    0 40px 130px -50px rgba(255,255,255,.8),
+    inset 0 1px 0 rgba(255,255,255,.16);
+}
+[data-nivel="2"] .live::after{opacity:1;animation-duration:3.2s}
+[data-nivel="2"] .pulse{animation-duration:.8s}
+[data-nivel="2"] .badge .dot{animation:blink .8s steps(2,end) infinite}
+/* sin lectura (nivel 3): el radar entra en modo standby (apagándose) */
+[data-nivel="3"] .radar{animation:blink 1.4s steps(2,end) infinite}
+[data-nivel="3"] .live{opacity:.82}
+
+/* ---------- Celda ancha en la tarjeta en vivo (deprecada) ---------- */
+.live-wide{grid-column:span 2;text-align:left}
+.live-wide b{font-size:22px !important}
+.live-bar{margin-top:12px;height:2px}
+
+/* ---------- Preparación GSAP (evita FOUC en reveals dobles) ---------- */
+/* Cuando GSAP está activo, apagamos las animaciones CSS de entrada de la
+   portada: el preloader + GSAP se encargan de todas (evita dobles movimientos). */
+.wow-ready .hero-copy>*{animation:none}
+.wow-ready .live{animation:levitar 11s 1.4s var(--ease) infinite alternate}
+.wow-ready .kpi{animation:none}
+.wow-ready .panel{animation:none}
+
+/* ==========================================================================
+   31. ESTRUCTURA PROFESIONAL · stats hero, problema, bento, IA, FAQ
+   ========================================================================== */
+
+/* ---------- CTA secundario silencioso ---------- */
+.quiet-link{
+  color:var(--mt);font-size:13.5px;align-self:center;
+  text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(255,255,255,.25);
+  transition:color .25s;
+}
+.quiet-link:hover{color:var(--tx)}
+
+/* ---------- Franja de stats bajo el hero ---------- */
+.hero-foot{
+  display:flex;gap:clamp(18px,3vw,34px);flex-wrap:wrap;
+  margin-top:34px;padding-top:20px;border-top:1px solid var(--bd);
+}
+.hf{
+  display:flex;flex-direction:column;gap:2px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+}
+.hf b{
+  font-family:var(--sans);font-size:19px;font-weight:650;letter-spacing:-.02em;
+  color:var(--tx);text-shadow:0 0 18px rgba(255,255,255,.35);
+}
+
+/* ---------- Sección problema ---------- */
+.risks{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--bd);border:1px solid var(--bd);border-radius:20px;overflow:hidden;
+}
+.risk{background:#000;padding:30px 26px;transition:background .3s var(--ease)}
+.risk:hover{background:rgba(255,255,255,.035)}
+.risk .n{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--dim)}
+.risk h3{font-size:16.5px;margin:14px 0 8px}
+.risk p{font-size:13.5px;color:var(--mt);line-height:1.65}
+.risk b{color:var(--tx);font-weight:600}
+
+/* ---------- Bento grid de sensores ---------- */
+.bento{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(170px,auto);gap:12px}
+.bt{
+  position:relative;overflow:hidden;
+  border:1px solid var(--bd);border-radius:18px;padding:22px;
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.012));
+  transition:transform .26s var(--ease),border-color .3s,box-shadow .35s;
+  display:flex;flex-direction:column;gap:8px;
+}
+.bt:hover{
+  transform:translateY(-4px);border-color:var(--bd-2);
+  box-shadow:0 24px 50px -26px rgba(255,255,255,.45),inset 0 1px 0 rgba(255,255,255,.08);
+}
+.bt h3{font-size:15.5px;letter-spacing:-.01em}
+.bt p{font-size:13px;color:var(--mt);line-height:1.6}
+.bt .k-ic{
+  width:34px;height:34px;border:1px solid var(--bd-2);border-radius:10px;
+  display:grid;place-items:center;background:rgba(255,255,255,.05);margin-bottom:4px;
+}
+.bt .k-ic .ic{width:16px;height:16px}
+.bt-lg{grid-column:span 2;grid-row:span 2}
+.bt-nums{display:flex;gap:26px;margin-top:auto;padding-top:12px}
+.bt-nums b{
+  display:block;font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:-.02em;
+  line-height:1;text-shadow:0 0 22px rgba(255,255,255,.3);
+}
+.bt-nums i{
+  display:block;font-style:normal;font-family:var(--mono);font-size:9px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:6px;
+}
+.bt-val{margin-top:auto;padding-top:10px}
+.bt-val b{font-family:var(--mono);font-size:22px;font-weight:600;text-shadow:0 0 20px rgba(255,255,255,.28)}
+.bt-val i{font-style:normal;color:var(--dim);font-size:11px;margin-left:6px}
+.bt-bar{margin-top:auto;height:2px}
+.bt-spark{position:absolute;right:14px;bottom:12px;width:52%;height:44px;opacity:.8}
+.bt-spark polyline{stroke:#fff;stroke-width:1.6;filter:drop-shadow(0 0 6px rgba(255,255,255,.5))}
+.bt-dots{
+  display:flex;flex-direction:column;gap:7px;margin-top:auto;padding-top:10px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mt);
+}
+.bt-dots span{display:flex;align-items:center;gap:9px}
+.bt-dots i{width:9px;height:9px;border-radius:50%;flex:none}
+.d-on{background:#fff;box-shadow:0 0 10px rgba(255,255,255,.8)}
+.d-mid{background:#8b8b93;box-shadow:0 0 8px rgba(255,255,255,.35)}
+.d-blink{border:1px solid rgba(255,255,255,.5);animation:blink 1s steps(2,end) infinite}
+
+/* ---------- Asistente IA ---------- */
+.ia{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,4vw,48px);align-items:center}
+.ia-copy .btn{margin-top:10px}
+.chat-demo{
+  border:1px solid var(--bd-2);border-radius:20px;padding:22px;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.014));
+  box-shadow:0 40px 90px -50px rgba(255,255,255,.35),inset 0 1px 0 rgba(255,255,255,.08);
+  display:flex;flex-direction:column;gap:10px;
+}
+.cd{max-width:86%;padding:11px 15px;border-radius:14px;font-size:13.5px;line-height:1.55}
+.cd-q{align-self:flex-end;background:#fafaf9;color:#000;border-bottom-right-radius:4px}
+.cd-a{align-self:flex-start;background:rgba(255,255,255,.07);border:1px solid var(--bd);border-bottom-left-radius:4px;color:var(--tx)}
+.cd-note{font-size:11px;color:var(--dim);padding:6px 4px 0;background:none;border:none;box-shadow:none}
+
+/* ---------- FAQ (details nativo: 0 JS) ---------- */
+.faq{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.faq details{
+  border:1px solid var(--bd);border-radius:14px;padding:0 20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
+  transition:border-color .3s,background .3s;
+}
+.faq details[open]{border-color:var(--bd-2);background:rgba(255,255,255,.05)}
+.faq summary{
+  cursor:pointer;list-style:none;position:relative;
+  padding:16px 30px 16px 0;font-size:14.5px;font-weight:600;
+}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{
+  content:"+";position:absolute;right:2px;top:50%;transform:translateY(-50%);
+  font-family:var(--mono);font-size:17px;color:var(--mt);
+  transition:color .25s;
+}
+.faq details[open] summary::after{content:"−";color:#fff}
+.faq details p{padding:0 0 16px;color:var(--mt);font-size:13.5px;line-height:1.65}
+
+/* ---------- Accesibilidad: menos movimiento ---------- */
+/* NOTA: el preloader NO se oculta con prefers-reduced-motion (Alejandro lo
+   quiere siempre visible); solo se suavizan efectos decorativos. */
+@media (prefers-reduced-motion:reduce){
+  body{animation:none!important}
+  .marquee-track{animation:none!important}
+  .d-blink,[data-nivel="2"] .radar-core,[data-nivel="2"] .badge .dot{animation:none!important}
+  .ab-sweep{animation-duration:12s!important}
+}
+
+@media(max-width:940px){
+  .bento{grid-template-columns:1fr 1fr}
+  .bt-lg{grid-column:span 2;grid-row:auto}
+  .ia{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .bento{grid-template-columns:1fr}
+  .bt-lg{grid-column:auto}
+  .risks{grid-template-columns:1fr}
+  .hero-foot{gap:16px 22px}
+}
+
+/* ==========================================================================
+   32. AUTH SPLIT-SCREEN · marca a la izquierda, formulario a la derecha
+   ========================================================================== */
+.auth-split{
+  display:grid;grid-template-columns:1.05fr .95fr;align-items:stretch;
+  width:100%;min-height:calc(100vh - 210px);
+  border:1px solid var(--bd);border-radius:26px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.008));
+}
+.auth-brand{
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center;gap:26px;
+  padding:clamp(30px,5vw,60px);
+  border-right:1px solid var(--bd);
+  background:
+    radial-gradient(1px 1px at 18% 24%,rgba(255,255,255,.5),transparent 50%),
+    radial-gradient(1px 1px at 72% 12%,rgba(255,255,255,.35),transparent 50%),
+    radial-gradient(1.5px 1.5px at 58% 70%,rgba(255,255,255,.4),transparent 50%),
+    radial-gradient(1px 1px at 30% 82%,rgba(255,255,255,.3),transparent 50%),
+    radial-gradient(120% 90% at 80% 10%,rgba(255,255,255,.06),transparent 60%);
+}
+.ab-radar{width:132px;height:132px;position:relative}
+.ab-radar i{position:absolute;border:1px solid rgba(255,255,255,.16);border-radius:50%}
+.ab-radar i:nth-child(1){inset:0}
+.ab-radar i:nth-child(2){inset:19px}
+.ab-radar i:nth-child(3){inset:38px}
+.ab-sweep{
+  position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,rgba(255,255,255,.2),transparent 30%);
+  animation:giro360 5.5s linear infinite;
+}
+.ab-radar span{
+  position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;
+  border-radius:50%;background:#fff;box-shadow:0 0 14px rgba(255,255,255,.9);
+}
+@keyframes giro360{to{transform:rotate(360deg)}}
+.ab-line{font-size:clamp(24px,3.2vw,34px);font-weight:650;letter-spacing:-.03em;line-height:1.15}.ab-line em{font-style:normal;color:#fff;text-shadow:0 0 22px rgba(255,255,255,.5)}
+.ab-feats{display:flex;flex-direction:column;gap:9px;list-style:none}
+.ab-feats li{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mt);
+}
+.ab-feats li::before{content:"";width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 8px rgba(255,255,255,.7);flex:none}
+.ab-foot{
+  font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--dim);margin-top:12px;
+}
+.auth-form{display:grid;place-items:center;padding:30px 22px}
+@media(max-width:860px){
+  .auth-split{grid-template-columns:1fr;min-height:0;background:none;border:none;border-radius:0}
+  .auth-brand{display:none}
+  .auth-form{padding:0}
+}
+
+/* ==========================================================================
+   33. SPARKLINES del panel (mini-gráficos SVG en cada tarjeta)
+   ========================================================================== */
+.spark{width:100%;height:28px;margin-top:12px;display:block;opacity:.9}
+
+/* ---------- 34. Barras "esperando sensor" (latido suave) ---------- */
+@keyframes latido{from{opacity:.3}to{opacity:.85}}
+.bar i.waiting{opacity:.45;animation:latido 2.2s ease-in-out infinite alternate}
+@media (prefers-reduced-motion:reduce){.bar i.waiting{animation:none;opacity:.6}}
+
+/* Aviso dentro de la burbuja "typing" cuando la IA va lenta (nube fría) */
+.msg.ai.typing.slow::after{
+  content:"la IA va lenta ahora mismo — 10–30 s más, no cierres";
+  display:block;margin-top:7px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--dim);
+}
+
+/* ---------- 35. Rendimiento: animaciones fuera de pantalla se pausan ---------- */
+/* La JS de base.html agrega .pz-out a lo que sale del viewport (IntersectionObserver) */
+.pz-out{animation-play-state:paused!important}
+
+/* ---------- 36. Transición entre páginas (fade suave, sin flash) ---------- */
+@keyframes pagIn{from{opacity:0}}
+body{animation:pagIn .32s var(--ease)}
+body.saliendo{opacity:0;transition:opacity .18s ease}
+
+/* ---------- 37. Anillo de progreso de lectura (nav, hermano del preloader) ---------- */
+.nav-ring{width:30px;height:30px;flex:none;display:block}
+@media(max-width:720px){.nav-ring{display:none}}
+
+/* ---------- 38. Subrayado que se traza bajo los títulos de sección ---------- */
+.sec-title{position:relative}
+.sec-head .sec-title::after{
+  content:"";position:absolute;left:0;bottom:-12px;height:2px;width:64px;
+  background:#fff;box-shadow:0 0 14px rgba(255,255,255,.55);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .7s var(--ease) .25s;
+}
+.sec-head.in .sec-title::after{transform:scaleX(1)}

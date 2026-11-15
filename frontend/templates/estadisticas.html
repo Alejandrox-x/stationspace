@@ -8,6 +8,7 @@
     <div class="periods">
       <button data-h="24">24 h</button><button data-h="168" class="on">7 días</button><button data-h="720">30 días</button>
     </div>
+    <a class="btn ghost sm" href="/api/exportar" download>↓ Exportar CSV</a>
   </div>
 </div>
 <p class="mut" id="msej">Cargando historial…</p>
@@ -54,5 +55,5 @@
 
 <p><a class="btn ghost" href="/dashboard">← Volver al panel</a></p>
 
-<script src="{{ url_for('static', filename='stats.js') }}"></script>
+<script src="{{ url_for('static', filename='stats.js', v=v('stats.js')) }}"></script>
 {% endblock %}

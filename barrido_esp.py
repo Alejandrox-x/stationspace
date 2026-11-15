@@ -24,7 +24,7 @@ def es_esp(ip):
             pass
     return None
 
-base = sys.argv[1] if len(sys.argv) > 1 else "192.168.18"
+base = sys.argv[1].rstrip('.') if len(sys.argv) > 1 else "192.168.18"
 hosts = [f"{base}.{i}" for i in range(1, 255)] + ["192.168.4.1"]
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=300) as ex:

@@ -95,14 +95,18 @@ if (-not $ipEsp) {
     $hallado = ($salida | Where-Object { $_ -match '^\d+\.\d+\.\d+\.\d+$' } | Select-Object -First 1)
     if ($hallado) { $ipEsp = $hallado }
 }
-if ($ipEsp) {
+# c) Si no respondio en red local, usar la IP guardada o el AP por defecto
+if (-not $ipEsp) {
+    if (Test-Path $archIP) {
+        $ipEsp = (Get-Content $archIP -ErrorAction SilentlyContinue | Select-Object -First 1).Trim()
+    }
+    if (-not $ipEsp) { $ipEsp = "192.168.4.1" }
+    Write-Host "      Usando IP configurada: http://$ipEsp" -ForegroundColor DarkCyan
+} else {
     Write-Host "      ESTACION VIVA en http://$ipEsp" -ForegroundColor Green
     Set-Content -Path $archIP -Value $ipEsp -ErrorAction SilentlyContinue
-    Start-Process ("http://" + $ipEsp)   # web del ESP32 (anillos)
-} else {
-    Write-Host "      No visible ahora (chip apagado o red con aislamiento)." -ForegroundColor DarkYellow
-    Write-Host "      La nube sigue sirviendo los datos y ya se usara AP del chip si hace falta." -ForegroundColor DarkYellow
 }
+Start-Process ("http://" + $ipEsp)   # web del ESP32 (anillos)
 
 # ------------------------------------------------------------
 # 3. Pagina web local (portada) + despertar la nube
@@ -111,10 +115,10 @@ Write-Host ""
 Write-Host "[3/4] Abriendo la web local (portada) y despertando la nube..." -ForegroundColor Yellow
 Start-Process "http://localhost:5000"
 try {
-    Invoke-WebRequest -Uri ($nube + "/salud") -UseBasicParsing -TimeoutSec 60 | Out-Null
+    Invoke-WebRequest -Uri ($nube + "/salud") -UseBasicParsing -TimeoutSec 6 | Out-Null
     Write-Host "      Nube despierta. El QR de invitados cargara al toque." -ForegroundColor Green
 } catch {
-    Write-Host "      Nube no respondio ya: el primer escaneo del QR puede tardar ~40 s." -ForegroundColor DarkYellow
+    Write-Host "      Nube despertando en segundo plano..." -ForegroundColor DarkYellow
 }
 
 # ------------------------------------------------------------
@@ -125,18 +129,17 @@ Write-Host "[4/4] Codigos QR..." -ForegroundColor Yellow
 # QR invitados -> NUBE (funciona desde cualquier red)
 $qrA = Join-Path $env:TEMP "qr_nube.png"
 try {
-    Invoke-WebRequest -Uri ("https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=" + [uri]::EscapeDataString($nube)) -OutFile $qrA -TimeoutSec 25 -UseBasicParsing
-    if ((Get-Item $qrA).Length -gt 300) { Start-Process $qrA; Write-Host "      QR INVITADOS (nube) abierto." -ForegroundColor Magenta }
+    Invoke-WebRequest -Uri ("https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=" + [uri]::EscapeDataString($nube)) -OutFile $qrA -TimeoutSec 15 -UseBasicParsing
+    if ((Get-Item $qrA).Length -gt 300) { Start-Process $qrA; Write-Host "      [OK] QR INVITADOS (nube) abierto." -ForegroundColor Magenta }
 } catch { Write-Host "      (sin internet para el QR: mostrar URL escrita)" -ForegroundColor DarkGray }
-# QR estacion -> IP real del chip si responde
-if ($ipEsp) {
-    $qrB = Join-Path $env:TEMP "qr_esp32.png"
-    try {
-        Invoke-WebRequest -Uri ("https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=" + [uri]::EscapeDataString("http://" + $ipEsp)) -OutFile $qrB -TimeoutSec 25 -UseBasicParsing
-        if ((Get-Item $qrB).Length -gt 300) { Start-Sleep 1; Start-Process $qrB; Write-Host "      QR ESTACION abierto." -ForegroundColor Magenta }
-    } catch {}
-} else {
-    Start-Sleep -Milliseconds 300
+
+# QR estacion -> IP del chip
+$qrB = Join-Path $env:TEMP "qr_esp32.png"
+try {
+    Invoke-WebRequest -Uri ("https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=" + [uri]::EscapeDataString("http://" + $ipEsp)) -OutFile $qrB -TimeoutSec 15 -UseBasicParsing
+    if ((Get-Item $qrB).Length -gt 300) { Start-Process $qrB; Write-Host "      [OK] QR ESTACION abierto ($ipEsp)." -ForegroundColor Magenta }
+} catch {
+    Write-Host "      (no se pudo generar QR de estacion)" -ForegroundColor DarkGray
 }
 
 # ------------------------------------------------------------

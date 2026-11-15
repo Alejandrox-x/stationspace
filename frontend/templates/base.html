@@ -8,9 +8,65 @@
 <meta name="description" content="StationSpace: estación ambiental IoT. Temperatura, humedad, fugas y lluvia en tiempo real con asistente IA.">
 <title>StationSpace · {% block t %}{% endblock %}</title>
 <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=v('style.css')) }}">
 </head>
 <body>
+
+<!-- ============ PRELOADER WOW · anillo orbital (TODAS las páginas) ============ -->
+<div class="wow-pre" id="wow-pre" aria-hidden="true">
+  <div class="wp-in">
+    <span class="wp-brand">Station<strong>Space</strong></span>
+    <span class="wp-sub">Estación ambiental · ESP32-S3</span>
+    <div class="wp-ring-wrap">
+      <span class="wp-orbit" aria-hidden="true"></span>
+      <span class="wp-sweep" aria-hidden="true"></span>
+      <svg class="wp-ring" viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="wp-tk" cx="60" cy="60" r="52"/>
+        <circle class="wp-fl" id="wp-fl" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+      </svg>
+      <b class="wp-num" id="wp-num">00</b>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Preloader WOW · anillo (corre en TODAS las páginas) ---------- */
+(function(){
+  var pre=document.getElementById('wow-pre'),num=document.getElementById('wp-num'),fl=document.getElementById('wp-fl');
+  var reduce=false;
+  try{reduce=matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
+  if(!pre||!num||!fl){if(pre)pre.style.display='none';return}
+  document.body.classList.add('wow-lock');
+  var C=326.73,ini=null,DUR=1000,cerrado=false;
+  function enganchar(){
+    /* la portada registra window.ssEntrar (entrada SplitText del hero) */
+    if(typeof window.ssEntrar==='function'){try{window.ssEntrar(false)}catch(e){}}
+  }
+  function cerrar(){
+    if(cerrado)return;cerrado=true;
+    document.body.classList.remove('wow-lock');
+    if(!reduce&&typeof window.gsap!=='undefined'){
+      try{
+        gsap.to(pre,{yPercent:-100,duration:.85,ease:'power4.inOut',
+          onComplete:function(){pre.style.display='none';enganchar()}});
+        return;
+      }catch(e){}
+    }
+    pre.classList.add('off');
+    setTimeout(function(){pre.style.display='none';enganchar()},700);
+  }
+  function paso(t){
+    if(ini===null)ini=t;
+    var k=Math.min(1,(t-ini)/DUR),e=1-Math.pow(1-k,3);
+    var v=Math.round(100*e);
+    num.textContent=(v<10?'0':'')+v;
+    fl.style.strokeDashoffset=String(C*(1-e));
+    if(k<1)requestAnimationFrame(paso);else setTimeout(cerrar,140);
+  }
+  requestAnimationFrame(paso);
+  setTimeout(cerrar,3200); /* red de seguridad */
+})();
+</script>
 
 <div class="bg-grid" aria-hidden="true"></div>
 <canvas id="stars" aria-hidden="true"></canvas>
@@ -37,6 +93,7 @@
   <symbol id="i-chip" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/></symbol>
   <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2 8.8a16 16 0 0 1 20 0"/><path d="M5.5 12.5a11 11 0 0 1 13 0"/><path d="M9 16.1a6 6 0 0 1 6 0"/><circle cx="12" cy="19.6" r="1"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></symbol>
+  <symbol id="i-led" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-3.7 10.7c.8.7 1.2 1.4 1.4 2.3h4.6c.2-.9.6-1.6 1.4-2.3A6 6 0 0 0 12 3Z"/><path d="M9.5 19h5"/><path d="M10.5 21.5h3"/></symbol>
   <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19a4.5 4.5 0 0 0 .4-9 6 6 0 0 0-11.6 1.4A4 4 0 0 0 7 19Z"/></symbol>
 </svg>
 
@@ -67,6 +124,14 @@
         <a class="btn ghost sm hide-sm" href="/login">Entrar</a>
         <a class="btn sm" href="/registro">Crear cuenta</a>
       {% endif %}
+      <svg class="nav-ring" viewBox="0 0 30 30" aria-hidden="true">
+        <circle cx="15" cy="15" r="13" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.6"/>
+        <circle id="nav-ring-fl" cx="15" cy="15" r="13" fill="none" stroke="#fff" stroke-width="1.6"
+                stroke-linecap="round" stroke-dasharray="81.68" stroke-dashoffset="81.68"
+                transform="rotate(-90 15 15)"/>
+        <text id="nav-ring-pct" x="15" y="18" text-anchor="middle" font-size="7"
+              fill="#8b8b93" font-family="ui-monospace,Consolas,monospace">0%</text>
+      </svg>
     </div>
   </div>
 </header>
@@ -181,7 +246,7 @@
 
   function frame(t){
     requestAnimationFrame(frame);
-    if(t-prev<26) return;
+    if(t-prev<33) return;               /* techo de ~30 fps: el cielo es lento, sobra rendimiento */
     var dt=Math.min(60,t-prev)/16.7; prev=t;
     x.clearRect(0,0,W,H);
     var ox=(mx-W/2)/W*.03,oy=(my-H/2)/H*.03;
@@ -247,6 +312,63 @@
       this.style.setProperty('--my',(e.clientY-r.top)+'px');
     });
   }
+})();
+
+/* ---------- Transición entre páginas (fade al navegar) ---------- */
+(function(){
+  addEventListener('pageshow',function(){document.body.classList.remove('saliendo')});
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a[href]');
+    if(!a||a.target==='_blank'||a.hasAttribute('download'))return;
+    var h=a.getAttribute('href')||'';
+    if(h===''||h.charAt(0)==='#')return;                 /* anclas internas: sin fade */
+    if(h.charAt(0)!=='/'&&h.indexOf(location.host)===-1)return; /* externos: normal */
+    e.preventDefault();
+    document.body.classList.add('saliendo');
+    setTimeout(function(){location.href=h},150);
+  });
+})();
+
+/* ---------- Anillo de progreso de lectura en el nav ---------- */
+(function(){
+  var fl=document.getElementById('nav-ring-fl'),pct=document.getElementById('nav-ring-pct');
+  if(!fl) return;
+  var C=81.68,esperando=false;
+  function pintar(){
+    esperando=false;
+    var y=scrollY||document.documentElement.scrollTop||0;
+    var max=document.documentElement.scrollHeight-innerHeight;
+    var k=max>0?Math.min(1,Math.max(0,y/max)):0;
+    fl.style.strokeDashoffset=String(C*(1-k));
+    if(pct)pct.textContent=Math.round(k*100)+'%';
+  }
+  addEventListener('scroll',function(){
+    if(esperando)return;
+    esperando=true;
+    requestAnimationFrame(pintar);
+  },{passive:true});
+  addEventListener('resize',pintar);
+  pintar();
+})();
+
+/* ---------- Pausar animaciones fuera de pantalla (ahorro GPU real) ---------- */
+(function(){
+  if(!('IntersectionObserver' in window)) return;
+  var objetivos=[];
+  try{
+    var todos=document.body.querySelectorAll('*');
+    for(var i=0;i<todos.length;i++){
+      var an=getComputedStyle(todos[i]).animationName;
+      if(an&&an!=='none')objetivos.push(todos[i]);
+    }
+  }catch(e){return}
+  if(!objetivos.length)return;
+  var io=new IntersectionObserver(function(ents){
+    for(var k=0;k<ents.length;k++){
+      ents[k].target.classList.toggle('pz-out',!ents[k].isIntersecting);
+    }
+  },{rootMargin:'14% 0px'});
+  for(var j=0;j<objetivos.length;j++)io.observe(objetivos[j]);
 })();
 
 /* ---------- Aparición al hacer scroll ---------- */

@@ -1,13 +1,18 @@
 """StationSpace Fase 2: Flask + SQLite local / Postgres nube + login + bot."""
+import csv
+import io
 import json
 import os
+import threading
+import time
 from datetime import datetime, timedelta
 import sqlite3
 import urllib.request
 import urllib.error
 from functools import wraps
 
-from flask import Flask, g, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, Response, g, jsonify, redirect, render_template, request, session, url_for
+from flask import stream_with_context
 from werkzeug.security import check_password_hash, generate_password_hash
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -32,6 +37,21 @@ def load_env():
 
 load_env()
 app = Flask(__name__, template_folder=TPL, static_folder=STA)
+# Sin caché agresiva de CSS/JS: el navegador siempre revalida (ETag 304).
+# Así los cambios se ven al refrescar normal, sin Ctrl+F5 ni versiones a mano.
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
+
+
+@app.context_processor
+def version_estatica():
+    """?v=fecha de modificación del archivo: si cambia el archivo, cambia la
+    URL, y el navegador nunca sirve una copia vieja (local y en Render)."""
+    def v(nombre):
+        try:
+            return int(os.path.getmtime(os.path.join(STA, nombre)))
+        except OSError:
+            return 0
+    return {"v": v}
 app.secret_key = os.environ.get("SECRET_KEY", "cambia-esto")
 API_TOKEN = os.environ.get("API_TOKEN", "")
 NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY", "")
@@ -125,8 +145,31 @@ def init_db():
         con.commit()
 
 
+def migrar_columnas():
+    """Agrega columnas nuevas a DBs que ya existen (SQLite local y Postgres nube)."""
+    con = db()
+    if IS_PG:
+        cur = con.cursor()
+        cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name='lecturas'")
+        cols = {r[0] for r in cur.fetchall()}
+        for c, ddl in (("ruido_raw", "ALTER TABLE lecturas ADD COLUMN ruido_raw INTEGER"),
+                       ("ruido_pct", "ALTER TABLE lecturas ADD COLUMN ruido_pct INTEGER")):
+            if c not in cols:
+                cur.execute(ddl)
+        con.commit()
+        cur.close()
+    else:
+        cur = con.execute("PRAGMA table_info(lecturas)")
+        cols = {r[1] for r in cur.fetchall()}
+        for c in ("ruido_raw", "ruido_pct"):
+            if c not in cols:
+                con.execute("ALTER TABLE lecturas ADD COLUMN " + c + " INTEGER")
+        con.commit()
+
+
 with app.app_context():
     init_db()
+    migrar_columnas()
 
 
 def login_required(fn):
@@ -216,14 +259,89 @@ def api_ultima():
     return jsonify(r if r else {})
 
 
+def nivel_de_estado(estado):
+    """0 normal · 1 advertencia · 2 alerta · 3 sin lectura (derivado del texto)."""
+    e = (estado or "").lower()
+    if "alerta" in e or "fuga" in e:
+        return 2
+    if "advertencia" in e:
+        return 1
+    if "sin lectura" in e:
+        return 3
+    return 0
+
+
 @app.get("/api/publica")
 def api_publica():
     """Última lectura sin login: solo lo que se muestra en la portada."""
-    r = q_one("SELECT temperatura,humedad,suelo_pct,lluvia_pct,estado,ts"
+    r = q_one("SELECT temperatura,humedad,suelo_pct,lluvia_pct,estado,ts,ruido_pct"
               " FROM lecturas ORDER BY id DESC LIMIT 1")
-    resp = jsonify(r if r else {})
+    d = r if r else {}
+    if d:
+        d["nivel"] = nivel_de_estado(d.get("estado"))
+    resp = jsonify(d)
     resp.headers["Cache-Control"] = "public, max-age=30"
     return resp
+
+
+@app.get("/api/exportar")
+@login_required
+def api_exportar():
+    """Historial completo como CSV en streaming (informes / tribunal)."""
+    def gen():
+        buf = io.StringIO()
+        w = csv.writer(buf, lineterminator="\n")
+        w.writerow(["id", "ts", "temperatura", "humedad", "suelo_raw", "lluvia_raw",
+                    "suelo_pct", "lluvia_pct", "ruido_raw", "ruido_pct", "estado"])
+        yield buf.getvalue()
+        buf.seek(0)
+        buf.truncate(0)
+        con = db()
+        sql = ("SELECT id,ts,temperatura,humedad,suelo_raw,lluvia_raw,"
+               "suelo_pct,lluvia_pct,ruido_raw,ruido_pct,estado FROM lecturas ORDER BY id")
+        if IS_PG:
+            cur = con.cursor()
+            cur.execute(sql, ())
+        else:
+            cur = con.execute(sql)
+        n = 0
+        for row in cur:
+            w.writerow(["" if v is None else v for v in row])
+            n += 1
+            if n % 500 == 0:
+                yield buf.getvalue()
+                buf.seek(0)
+                buf.truncate(0)
+        yield buf.getvalue()
+        if IS_PG:
+            cur.close()
+    nombre = "stationspace_%s.csv" % datetime.utcnow().strftime("%Y%m%d")
+    return Response(stream_with_context(gen()), mimetype="text/csv",
+                    headers={"Content-Disposition": "attachment; filename=" + nombre})
+
+
+def limpiar_lecturas():
+    """Borra lecturas de mas de 60 dias: la DB nunca crece sin control."""
+    try:
+        if IS_PG:
+            q_exec("DELETE FROM lecturas WHERE ts < now() - INTERVAL '60 days'")
+        else:
+            q_exec("DELETE FROM lecturas WHERE ts < datetime('now', ?)", ("-60 days",))
+    except Exception:
+        pass
+
+
+def limpiador_periodico():
+    while True:
+        time.sleep(12 * 3600)
+        with app.app_context():
+            limpiar_lecturas()
+
+
+threading.Thread(target=limpiador_periodico, daemon=True).start()
+
+with app.app_context():
+    limpiar_lecturas()
 
 
 @app.get("/api/historial")
@@ -234,7 +352,16 @@ def api_historial():
     except ValueError:
         horas = 24
     corte = (datetime.utcnow() - timedelta(hours=horas)).strftime("%Y-%m-%d %H:%M:%S")
-    rows = q_all("SELECT * FROM lecturas WHERE ts >= ? ORDER BY id", (corte,))
+    # Muestreo: 1 punto cada N lecturas (1/min). 24h -> todas; 7d -> cada 7;
+    # 30d -> cada 30. Asi la respuesta pesa ~50 veces menos en 30 dias y el
+    # navegador no se ahoga: el ojo no distingue puntos de 5 en 5 minutos.
+    paso = max(1, horas // 24)
+    rows = q_all("SELECT * FROM lecturas WHERE ts >= ? AND id % ? = 0 ORDER BY id",
+                 (corte, paso))
+    # El punto más reciente SIEMPRE entra (si el id no cayó en el muestreo).
+    last = q_one("SELECT * FROM lecturas ORDER BY id DESC LIMIT 1")
+    if last and (not rows or rows[-1]["id"] != last["id"]):
+        rows.append(last)
     return jsonify(rows)
 
 
@@ -244,10 +371,12 @@ def api_lectura():
         return jsonify({"error": "token invalido"}), 401
     d = request.get_json(force=True, silent=True) or {}
     q_exec(
-        "INSERT INTO lecturas(temperatura,humedad,suelo_raw,lluvia_raw,suelo_pct,lluvia_pct,estado)"
-        " VALUES(?,?,?,?,?,?,?)",
+        "INSERT INTO lecturas(temperatura,humedad,suelo_raw,lluvia_raw,suelo_pct,lluvia_pct,"
+        "ruido_raw,ruido_pct,estado)"
+        " VALUES(?,?,?,?,?,?,?,?,?)",
         (d.get("temperatura"), d.get("humedad"), d.get("suelo_raw"), d.get("lluvia_raw"),
-         d.get("suelo_pct"), d.get("lluvia_pct"), str(d.get("estado", ""))[:60]))
+         d.get("suelo_pct"), d.get("lluvia_pct"), d.get("ruido_raw"), d.get("ruido_pct"),
+         str(d.get("estado", ""))[:60]))
     return jsonify({"ok": True})
 
 
@@ -257,16 +386,16 @@ def preguntar_ia(pregunta, ctx):
     body = json.dumps({
         "model": AI_MODEL,
         "messages": [
-            {"role": "system", "content": "Eres el Asistente StationSpace: la IA con la que conversa una familia desde su casa equipada con una estacion ambiental IoT. Eres amable, cercano y natural, como ChatGPT, pero miras la casa: puedes responder de casi todo (saludos, dudas, tareas, curiosidad general) y, cuando encaje, usas tu vista de los sensores: DHT11 clima, YL-69 humedad del terreno (detecta filtraciones y fugas), placa roja lluvia en el techo. No tienes actuadores (no riegas ni apagas cosas). Si preguntan de la casa usa los datos; si es otro tema, responde con confianza e invita a volver a lo de la casa. Espanol con emojis en proporcion, maximo 5 lineas. " + ctx},
+            {"role": "system", "content": "Eres el Asistente StationSpace: la IA con la que conversa una familia desde su casa equipada con una estacion ambiental IoT. Eres amable, cercano y natural, como ChatGPT, pero miras la casa: puedes responder de casi todo (saludos, dudas, tareas, curiosidad general) y, cuando encaje, usas tu vista de los sensores: DHT11 clima, YL-69 humedad del terreno (detecta filtraciones y fugas) y placa roja lluvia en el techo. No tienes actuadores (no riegas ni apagas cosas). Si preguntan de la casa usa los datos; si es otro tema, responde con confianza e invita a volver a lo de la casa. Espanol con emojis en proporcion, maximo 5 lineas. " + ctx},
             {"role": "user", "content": pregunta[:300]},
         ],
-        "temperature": 0.4, "max_tokens": 512}).encode()
+        "temperature": 0.4, "max_tokens": 320}).encode()
     req = urllib.request.Request("https://integrate.api.nvidia.com/v1/chat/completions",
                                  data=body, method="POST",
                                  headers={"Content-Type": "application/json",
                                           "Authorization": "Bearer " + NVIDIA_API_KEY})
     try:
-        with urllib.request.urlopen(req, timeout=90) as r:
+        with urllib.request.urlopen(req, timeout=60) as r:
             j = json.loads(r.read().decode())
         msg = (j.get("choices") or [{}])[0].get("message", {})
         return (msg.get("content") or "").strip()[:600] or "El modelo no respondio."
@@ -286,7 +415,8 @@ def api_chat():
     r = q_one("SELECT * FROM lecturas ORDER BY id DESC LIMIT 1")
     if r:
         ctx = (f"Datos actuales de los sensores: T={r['temperatura']}C, H={r['humedad']}%, "
-               f"suelo_raw={r['suelo_raw']}, lluvia_raw={r['lluvia_raw']}, estado={r['estado']}. "
+               f"suelo_raw={r['suelo_raw']}, lluvia_raw={r['lluvia_raw']}, "
+               f"estado={r['estado']}. "
                "Usa estos datos solo si son utiles para la respuesta.")
     else:
         ctx = "Aun no hay lecturas de la estacion."
